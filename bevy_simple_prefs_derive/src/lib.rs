@@ -53,17 +53,6 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                 }
             }
 
-            // Generate the body of the check function
-            let check_body = quote! {
-                #(#field_bindings)*
-
-                if #(#field_checks)&&* {
-                    return;
-                }
-
-                // do stuff
-            };
-
             quote! {
                 use bevy::ecs::{system::{Commands, Res}, change_detection::DetectChanges};
                 use bevy::reflect::TypeRegistry;
@@ -74,7 +63,11 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
 
                 impl Preferences for #name {
                     fn save(world: &mut World) {
-                        #check_body
+                        #(#field_bindings)*
+
+                        if #(#field_checks)&&* {
+                            return;
+                        }
 
                         let to_save = #name {
                             #(#field_assignments,)*
@@ -85,9 +78,10 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
 
                         let config = PrettyConfig::default();
                         let reflect_serializer = ReflectSerializer::new(&to_save, &registry);
-                        let serialized_value: String = to_string_pretty(&reflect_serializer, config).unwrap();
-
-                        bevy::log::info!(serialized_value);
+                        let Ok(serialized_value) = to_string_pretty(&reflect_serializer, config) else {
+                            bevy::log::error!("Failed to serialize preferences.");
+                            return;
+                        };
 
                         let filename = &world.resource::<PreferencesSettings<#name>>().filename;
 
@@ -97,10 +91,8 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                     fn load(world: &mut World) {
                         let filename = &world.resource::<PreferencesSettings<#name>>().filename;
 
-                        let val = match load_str(filename) {
+                        let val = (|| { match load_str(filename) {
                             Some(serialized_value) => {
-                                bevy::log::info!("loaded! {}", serialized_value);
-
                                 let mut registry = TypeRegistry::new();
                                 registry.register::<#name>();
 
@@ -108,20 +100,23 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                                     ron::Deserializer::from_str(&serialized_value).unwrap();
 
                                 let de = ReflectDeserializer::new(&registry);
-                                let dynamic_struct = de
-                                    .deserialize(&mut deserializer)
-                                    .unwrap();
+                                let dynamic_struct = match de
+                                    .deserialize(&mut deserializer) {
+                                        Ok(ds) => ds,
+                                        Err(e) => {
+                                            bevy::log::error!("Failed to deserialize preferences: {}", e);
+                                            return #name::default();
+                                        }
+                                };
 
                                 let mut val = #name::default();
                                 val.apply(&*dynamic_struct);
                                 val
                             },
                             None => {
-                                bevy::log::info!("using default value!");
-
                                 #name::default()
                             }
-                        };
+                        }})();
 
                         #(#field_inserts;)*;
                     }
