@@ -60,6 +60,7 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                 use serde::de::DeserializeSeed;
                 use ron::ser::{to_string_pretty, PrettyConfig};
                 use bevy_simple_prefs::{save_str, load_str, PreferencesSettings};
+                use bevy::tasks::IoTaskPool;
 
                 impl Preferences for #name {
                     fn save(world: &mut World) {
@@ -73,19 +74,22 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                             #(#field_assignments,)*
                         };
 
-                        let mut registry = TypeRegistry::new();
-                        registry.register::<#name>();
+                        let filename = world.resource::<PreferencesSettings<#name>>().filename.clone();
 
-                        let config = PrettyConfig::default();
-                        let reflect_serializer = ReflectSerializer::new(&to_save, &registry);
-                        let Ok(serialized_value) = to_string_pretty(&reflect_serializer, config) else {
-                            bevy::log::error!("Failed to serialize preferences.");
-                            return;
-                        };
+                        IoTaskPool::get()
+                            .spawn(async move {
+                                let mut registry = TypeRegistry::new();
+                                registry.register::<#name>();
 
-                        let filename = &world.resource::<PreferencesSettings<#name>>().filename;
+                                let config = PrettyConfig::default();
+                                let reflect_serializer = ReflectSerializer::new(&to_save, &registry);
+                                let Ok(serialized_value) = to_string_pretty(&reflect_serializer, config) else {
+                                    bevy::log::error!("Failed to serialize preferences.");
+                                    return;
+                                };
 
-                        save_str(filename, &serialized_value);
+                                save_str(&filename, &serialized_value);
+                            }).detach();
                     }
 
                     fn load(world: &mut World) {
