@@ -1,0 +1,15 @@
+[package]
+name = "bevy_simple_prefs_derive"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy.git" }
+quote = "1.0.36"
+ron = "0.8.1"
+serde = "1.0.202"
+serde_json = "1.0.117"
+syn = "2.0.65"
+
+[lib]
+proc-macro = true

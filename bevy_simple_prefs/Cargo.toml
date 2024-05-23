@@ -1,0 +1,11 @@
+[package]
+name = "bevy_simple_prefs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy.git" }
+bevy_simple_prefs_derive = { path = "../bevy_simple_prefs_derive" }
+ron = "0.8.1"
+serde = "1.0.202"
+web-sys = { version = "0.3", features = ["Window", "Storage"] }
