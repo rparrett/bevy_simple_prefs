@@ -6,7 +6,7 @@ fn test() {
     use bevy::ecs::system::Resource;
     use bevy::prelude::Reflect;
     use bevy::prelude::World;
-    use bevy_simple_prefs::Preferences;
+    use bevy_simple_prefs::Prefs;
 
     #[derive(Resource, Reflect, Clone, Default)]
     struct A {
@@ -17,7 +17,7 @@ fn test() {
         val: u32,
     }
 
-    #[derive(Reflect, Preferences, Default)]
+    #[derive(Reflect, Prefs, Default)]
     struct ExampleStruct {
         a: A,
         b: B,

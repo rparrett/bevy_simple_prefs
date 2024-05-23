@@ -8,24 +8,24 @@ use bevy::{
 };
 pub use bevy_simple_prefs_derive::*;
 
-pub trait Preferences {
+pub trait Prefs {
     fn init(app: &mut App);
     fn save(world: &mut World);
     fn load(world: &mut World);
 }
 
 #[derive(Default)]
-pub struct PreferencesPlugin<T> {
-    pub settings: PreferencesSettings<T>,
+pub struct PrefsPlugin<T> {
+    pub settings: PrefsSettings<T>,
 }
 
 #[derive(Resource)]
-pub struct PreferencesSettings<T> {
+pub struct PrefsSettings<T> {
     pub filename: String,
     _phantom: PhantomData<T>,
 }
 
-impl<T> Clone for PreferencesSettings<T> {
+impl<T> Clone for PrefsSettings<T> {
     fn clone(&self) -> Self {
         Self {
             filename: self.filename.clone(),
@@ -34,16 +34,16 @@ impl<T> Clone for PreferencesSettings<T> {
     }
 }
 
-impl<T> Default for PreferencesSettings<T> {
+impl<T> Default for PrefsSettings<T> {
     fn default() -> Self {
         Self {
-            filename: "preferences.ron".to_string(),
+            filename: "prefs.ron".to_string(),
             _phantom: Default::default(),
         }
     }
 }
 
-impl<T: Preferences + Reflect> Plugin for PreferencesPlugin<T> {
+impl<T: Prefs + Reflect> Plugin for PrefsPlugin<T> {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(self.settings.clone());
 

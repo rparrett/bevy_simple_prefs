@@ -2,7 +2,6 @@
 
 ## TODO
 
-[ ] rename?
 [ ] use task pool for loading
 [ ] somehow let users react to loading being done
 [ ] clean up deps -- what do the two crates actually need?

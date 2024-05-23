@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_simple_prefs::{Preferences, PreferencesPlugin};
+use bevy_simple_prefs::{Prefs, PrefsPlugin};
 
 #[derive(Resource, Reflect, Default, Clone)]
 struct A {
@@ -10,7 +10,7 @@ struct B {
     val: u32,
 }
 
-#[derive(Reflect, Preferences, Default)]
+#[derive(Reflect, Prefs, Default)]
 struct ExampleStruct {
     a: A,
     b: B,
@@ -19,7 +19,7 @@ struct ExampleStruct {
 fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins);
-    app.add_plugins(PreferencesPlugin::<ExampleStruct>::default());
+    app.add_plugins(PrefsPlugin::<ExampleStruct>::default());
     app.add_systems(Update, changed);
     app.add_systems(Startup, setup);
     app.add_systems(Update, button_system);

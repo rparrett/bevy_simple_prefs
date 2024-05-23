@@ -3,8 +3,8 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, Data, DeriveInput, Fields};
 
-#[proc_macro_derive(Preferences)]
-pub fn preferences_derive(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(Prefs)]
+pub fn prefs_derive(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as DeriveInput);
 
@@ -49,7 +49,7 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                     }
                 }
                 _ => {
-                    unimplemented!("Preferences can only be derived for structs with named fields")
+                    unimplemented!("Prefs can only be derived for structs with named fields")
                 }
             }
 
@@ -59,10 +59,10 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                 use bevy::reflect::serde::{ReflectSerializer, ReflectDeserializer};
                 use serde::de::DeserializeSeed;
                 use ron::ser::{to_string_pretty, PrettyConfig};
-                use bevy_simple_prefs::{save_str, load_str, PreferencesSettings};
+                use bevy_simple_prefs::{save_str, load_str, PrefsSettings};
                 use bevy::tasks::IoTaskPool;
 
-                impl Preferences for #name {
+                impl Prefs for #name {
                     fn save(world: &mut World) {
                         #(#field_bindings)*
 
@@ -74,7 +74,7 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                             #(#field_assignments,)*
                         };
 
-                        let filename = world.resource::<PreferencesSettings<#name>>().filename.clone();
+                        let filename = world.resource::<PrefsSettings<#name>>().filename.clone();
 
                         IoTaskPool::get()
                             .spawn(async move {
@@ -84,7 +84,7 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                                 let config = PrettyConfig::default();
                                 let reflect_serializer = ReflectSerializer::new(&to_save, &registry);
                                 let Ok(serialized_value) = to_string_pretty(&reflect_serializer, config) else {
-                                    bevy::log::error!("Failed to serialize preferences.");
+                                    bevy::log::error!("Failed to serialize prefs.");
                                     return;
                                 };
 
@@ -93,7 +93,7 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                     }
 
                     fn load(world: &mut World) {
-                        let filename = &world.resource::<PreferencesSettings<#name>>().filename;
+                        let filename = &world.resource::<PrefsSettings<#name>>().filename;
 
                         let val = (|| { match load_str(filename) {
                             Some(serialized_value) => {
@@ -108,7 +108,7 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                                     .deserialize(&mut deserializer) {
                                         Ok(ds) => ds,
                                         Err(e) => {
-                                            bevy::log::error!("Failed to deserialize preferences: {}", e);
+                                            bevy::log::error!("Failed to deserialize prefs: {}", e);
                                             return #name::default();
                                         }
                                 };
@@ -131,7 +131,7 @@ pub fn preferences_derive(input: TokenStream) -> TokenStream {
                 }
             }
         }
-        _ => unimplemented!("Preferences can only be derived for structs"),
+        _ => unimplemented!("Prefs can only be derived for structs"),
     };
 
     // Hand the output tokens back to the compiler
