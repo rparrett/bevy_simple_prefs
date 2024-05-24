@@ -27,7 +27,7 @@ pub struct PrefsPlugin<T> {
 #[derive(Resource)]
 pub struct PrefsSettings<T> {
     pub filename: String,
-    _phantom: PhantomData<T>,
+    pub _phantom: PhantomData<T>,
 }
 
 impl<T> Clone for PrefsSettings<T> {

@@ -1,9 +1,18 @@
 use bevy::{color::palettes::tailwind, ecs::system::EntityCommands, prelude::*};
 use bevy_simple_prefs::{Prefs, PrefsPlugin};
 
+// All `Prefs` must also be `Reflect` and `Default`.
+#[derive(Prefs, Reflect, Default)]
+struct ExamplePrefs {
+    // Each field of the `Prefs` will be inserted into the `App` as a separate `Resource`.
+    volume: Volume,
+    difficulty: Difficulty,
+}
+
+// All `Prefs` fields must be `Resource`, `Reflect`, and `Clone`.
 #[derive(Resource, Reflect, Clone, Eq, PartialEq)]
-struct SfxVolume(pub u32);
-impl Default for SfxVolume {
+struct Volume(pub u32);
+impl Default for Volume {
     fn default() -> Self {
         Self(50)
     }
@@ -37,12 +46,6 @@ impl Difficulty {
     }
 }
 
-#[derive(Reflect, Prefs, Default)]
-struct ExampleStruct {
-    volume: SfxVolume,
-    b: Difficulty,
-}
-
 #[derive(Component)]
 struct VolumeUpButton;
 #[derive(Component)]
@@ -59,13 +62,13 @@ struct DifficultyLabel;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, PrefsPlugin::<ExampleStruct>::default()))
+        .add_plugins((DefaultPlugins, PrefsPlugin::<ExamplePrefs>::default()))
         .add_systems(Startup, setup)
         .add_systems(
             Update,
             (
                 volume_buttons,
-                volume_label.run_if(resource_changed::<SfxVolume>),
+                volume_label.run_if(resource_changed::<Volume>),
                 difficulty_buttons,
                 difficulty_label.run_if(resource_changed::<Difficulty>),
                 button_style,
@@ -74,6 +77,7 @@ fn main() {
         .run();
 }
 
+const TEXT_SIZE: f32 = 40.;
 const TEXT_COLOR: Srgba = tailwind::EMERALD_50;
 const BUTTON_TEXT_COLOR: Srgba = tailwind::EMERALD_50;
 const LABEL_BACKGROUND: Srgba = tailwind::EMERALD_800;
@@ -84,21 +88,21 @@ const PRESSED_BUTTON: Srgba = tailwind::EMERALD_700;
 fn volume_buttons(
     up_query: Query<&Interaction, (Changed<Interaction>, With<VolumeUpButton>)>,
     down_query: Query<&Interaction, (Changed<Interaction>, With<VolumeDownButton>)>,
-    mut volume: ResMut<SfxVolume>,
+    mut volume: ResMut<Volume>,
 ) {
     let current = volume.bypass_change_detection().0;
 
     for _ in up_query.iter().filter(|i| **i == Interaction::Pressed) {
         let new = (current + 10).min(100);
-        volume.set_if_neq(SfxVolume(new));
+        volume.set_if_neq(Volume(new));
     }
     for _ in down_query.iter().filter(|i| **i == Interaction::Pressed) {
         let new = current.saturating_sub(10);
-        volume.set_if_neq(SfxVolume(new));
+        volume.set_if_neq(Volume(new));
     }
 }
 
-fn volume_label(volume: Res<SfxVolume>, mut text_query: Query<&mut Text, With<VolumeLabel>>) {
+fn volume_label(volume: Res<Volume>, mut text_query: Query<&mut Text, With<VolumeLabel>>) {
     for mut text in &mut text_query {
         text.sections[0].value.clone_from(&format!("{}", volume.0));
     }
@@ -169,7 +173,7 @@ fn setup(mut commands: Commands) {
         })
         .with_children(|parent| {
             build_row(parent).with_children(|parent| {
-                build_header(parent, "SFX Volume".to_string());
+                build_header(parent, "Volume".to_string());
             });
 
             build_row(parent).with_children(|parent| {
@@ -194,7 +198,7 @@ fn build_header(parent: &mut ChildBuilder, text: String) {
     parent.spawn(TextBundle::from_section(
         text,
         TextStyle {
-            font_size: 40.0,
+            font_size: TEXT_SIZE,
             color: TEXT_COLOR.into(),
             ..default()
         },
@@ -232,7 +236,7 @@ fn build_label<M: Component>(parent: &mut ChildBuilder, text: String, marker: M)
                 TextBundle::from_section(
                     text,
                     TextStyle {
-                        font_size: 40.0,
+                        font_size: TEXT_SIZE,
                         color: TEXT_COLOR.into(),
                         ..default()
                     },
@@ -263,7 +267,7 @@ fn build_button<M: Component>(parent: &mut ChildBuilder, text: String, marker: M
             parent.spawn(TextBundle::from_section(
                 text,
                 TextStyle {
-                    font_size: 40.0,
+                    font_size: TEXT_SIZE,
                     color: BUTTON_TEXT_COLOR.into(),
                     ..default()
                 },
