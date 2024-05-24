@@ -2,9 +2,14 @@ use std::marker::PhantomData;
 
 use bevy::{
     app::{App, Plugin, Startup, Update},
-    ecs::{system::Resource, world::World},
+    ecs::{
+        component::Component,
+        system::{Commands, Query, Resource},
+        world::{CommandQueue, World},
+    },
     log::warn,
     reflect::Reflect,
+    tasks::{block_on, futures_lite::future, Task},
 };
 pub use bevy_simple_prefs_derive::*;
 
@@ -43,14 +48,41 @@ impl<T> Default for PrefsSettings<T> {
     }
 }
 
+#[derive(Resource)]
+pub struct PrefsStatus<T> {
+    pub loaded: bool,
+    _phantom: PhantomData<T>,
+}
+
+impl<T> Default for PrefsStatus<T> {
+    fn default() -> Self {
+        Self {
+            loaded: false,
+            _phantom: Default::default(),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct LoadPrefsTask(pub Task<CommandQueue>);
+
 impl<T: Prefs + Reflect> Plugin for PrefsPlugin<T> {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(self.settings.clone());
+        app.init_resource::<PrefsStatus<T>>();
 
         <T>::init(app);
 
-        app.add_systems(Update, <T>::save);
+        app.add_systems(Update, (<T>::save, handle_tasks));
         app.add_systems(Startup, <T>::load);
+    }
+}
+
+fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<&mut LoadPrefsTask>) {
+    for mut task in &mut transform_tasks {
+        if let Some(mut commands_queue) = block_on(future::poll_once(&mut task.0)) {
+            commands.append(&mut commands_queue);
+        }
     }
 }
 

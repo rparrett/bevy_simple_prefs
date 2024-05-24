@@ -54,12 +54,12 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
             }
 
             quote! {
-                use bevy::ecs::{system::{Commands, Res}, change_detection::DetectChanges};
+                use bevy::ecs::{system::{Commands, Res}, change_detection::DetectChanges, world::CommandQueue};
                 use bevy::reflect::TypeRegistry;
                 use bevy::reflect::serde::{ReflectSerializer, ReflectDeserializer};
                 use serde::de::DeserializeSeed;
                 use ron::ser::{to_string_pretty, PrettyConfig};
-                use bevy_simple_prefs::{save_str, load_str, PrefsSettings};
+                use bevy_simple_prefs::{save_str, load_str, PrefsSettings, LoadPrefsTask, PrefsStatus};
                 use bevy::tasks::IoTaskPool;
 
                 impl Prefs for #name {
@@ -93,36 +93,48 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                     }
 
                     fn load(world: &mut World) {
-                        let filename = &world.resource::<PrefsSettings<#name>>().filename;
+                        let filename = world.resource::<PrefsSettings<#name>>().filename.clone();
+                        let entity = world.spawn_empty().id();
 
-                        let val = (|| { match load_str(filename) {
-                            Some(serialized_value) => {
-                                let mut registry = TypeRegistry::new();
-                                registry.register::<#name>();
+                        let task = IoTaskPool::get().spawn(async move {
+                            let val = (|| { match load_str(&filename) {
+                                Some(serialized_value) => {
+                                    let mut registry = TypeRegistry::new();
+                                    registry.register::<#name>();
 
-                                let mut deserializer =
-                                    ron::Deserializer::from_str(&serialized_value).unwrap();
+                                    let mut deserializer =
+                                        ron::Deserializer::from_str(&serialized_value).unwrap();
 
-                                let de = ReflectDeserializer::new(&registry);
-                                let dynamic_struct = match de
-                                    .deserialize(&mut deserializer) {
-                                        Ok(ds) => ds,
-                                        Err(e) => {
-                                            bevy::log::error!("Failed to deserialize prefs: {}", e);
-                                            return #name::default();
-                                        }
-                                };
+                                    let de = ReflectDeserializer::new(&registry);
+                                    let dynamic_struct = match de
+                                        .deserialize(&mut deserializer) {
+                                            Ok(ds) => ds,
+                                            Err(e) => {
+                                                bevy::log::error!("Failed to deserialize prefs: {}", e);
+                                                return #name::default();
+                                            }
+                                    };
 
-                                let mut val = #name::default();
-                                val.apply(&*dynamic_struct);
-                                val
-                            },
-                            None => {
-                                #name::default()
-                            }
-                        }})();
+                                    let mut val = #name::default();
+                                    val.apply(&*dynamic_struct);
+                                    val
+                                },
+                                None => {
+                                    #name::default()
+                                }
+                            }})();
 
-                        #(#field_inserts;)*;
+                            let mut command_queue = CommandQueue::default();
+                            command_queue.push(move |world: &mut World| {
+                                #(#field_inserts;)*;
+                                world.resource_mut::<PrefsStatus<#name>>().loaded = true;
+                                world.despawn(entity);
+                            });
+
+                            command_queue
+                        });
+
+                        world.entity_mut(entity).insert(LoadPrefsTask(task));
                     }
 
                     fn init(app: &mut App) {

@@ -17,18 +17,22 @@ struct ExampleStruct {
 }
 
 fn main() {
-    let mut app = App::new();
-    app.add_plugins(DefaultPlugins);
-    app.add_plugins(PrefsPlugin::<ExampleStruct>::default());
-    app.add_systems(Update, changed);
-    app.add_systems(Startup, setup);
-    app.add_systems(Update, button_system);
-    app.run();
+    App::new()
+        .add_plugins((DefaultPlugins, PrefsPlugin::<ExampleStruct>::default()))
+        .add_systems(Startup, setup)
+        .add_systems(Update, (changed, loaded, button_system))
+        .run();
 }
 
 fn changed(a: Res<A>) {
     if a.is_changed() {
         info!("a is changed! {}", a.val);
+    }
+}
+
+fn loaded(status: Res<PrefsStatus<ExampleStruct>>) {
+    if status.is_changed() && status.loaded {
+        info!("Loaded!");
     }
 }
 
