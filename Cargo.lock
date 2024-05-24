@@ -878,9 +878,6 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "quote",
- "ron",
- "serde",
- "serde_json",
  "syn 2.0.65",
 ]
 
