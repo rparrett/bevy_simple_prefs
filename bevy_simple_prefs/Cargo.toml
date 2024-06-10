@@ -2,6 +2,15 @@
 name = "bevy_simple_prefs"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "A small Bevy plugin for persisting multiple Resources to a single file"
+repository = "https://github.com/rparrett/bevy_simple_prefs"
+homepage = "https://github.com/rparrett/bevy_simple_prefs"
+documentation = "https://docs.rs/bevy_simple_prefs"
+keywords = ["bevy", "gamedev"]
+categories = ["game-development"]
+readme = "README.md"
+exclude = [".github"]
 
 [dependencies]
 bevy_simple_prefs_derive = { path = "../bevy_simple_prefs_derive" }

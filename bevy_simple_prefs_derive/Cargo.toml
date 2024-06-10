@@ -2,6 +2,14 @@
 name = "bevy_simple_prefs_derive"
 version = "0.1.0"
 edition = "2021"
+description = "Derive macro for bevy_simple_prefs"
+repository = "https://github.com/rparrett/bevy_simple_prefs"
+homepage = "https://github.com/rparrett/bevy_simple_prefs"
+documentation = "https://docs.rs/bevy_simple_prefs"
+keywords = ["bevy", "gamedev"]
+categories = ["game-development"]
+readme = "README.md"
+exclude = [".github"]
 
 [dependencies]
 bevy = { version = "0.14.0-rc.2", default-features = false }
