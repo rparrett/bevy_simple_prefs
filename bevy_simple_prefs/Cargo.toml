@@ -13,7 +13,7 @@ readme = "README.md"
 exclude = [".github"]
 
 [dependencies]
-bevy_simple_prefs_derive = { path = "../bevy_simple_prefs_derive" }
+bevy_simple_prefs_derive = { path = "../bevy_simple_prefs_derive", version = "0.1" }
 bevy = { version = "0.14.0-rc.2", default-features = false }
 web-sys = { version = "0.3", features = ["Window", "Storage"] }
 serde = "1.0"
