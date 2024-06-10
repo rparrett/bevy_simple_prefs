@@ -5,11 +5,13 @@ edition = "2021"
 
 [dependencies]
 bevy_simple_prefs_derive = { path = "../bevy_simple_prefs_derive" }
-# TODO winnow features
-bevy = { version = "0.14.0-rc.2" }
+bevy = { version = "0.14.0-rc.2", default-features = false }
 web-sys = { version = "0.3", features = ["Window", "Storage"] }
 serde = "1.0"
 ron = "0.8"
+
+[dev-dependencies]
+bevy = { version = "0.14.0-rc.2" }
 
 [lints.rust]
 missing_docs = "warn"
