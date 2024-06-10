@@ -33,6 +33,11 @@ pub trait Prefs {
 /// use bevy::prelude::*;
 /// use bevy_simple_prefs::{Prefs, PrefsPlugin};
 ///
+/// #[derive(Prefs, Reflect, Default)]
+/// struct ExamplePrefs {
+///     difficulty: Difficulty,
+/// }
+///
 /// #[derive(Resource, Reflect, Clone, Eq, PartialEq, Debug, Default)]
 /// enum Difficulty {
 ///     Easy,
