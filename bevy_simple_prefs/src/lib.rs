@@ -46,8 +46,7 @@ pub trait Prefs {
 ///     Hard,
 /// }
 ///
-/// App::new()
-///     .add_plugins((DefaultPlugins, PrefsPlugin::<ExamplePrefs>::default()));
+/// App::new().add_plugins(PrefsPlugin::<ExamplePrefs>::default());
 /// ```
 #[derive(Default)]
 pub struct PrefsPlugin<T> {
