@@ -2,6 +2,7 @@
 name = "bevy_simple_prefs_derive"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
 description = "Derive macro for bevy_simple_prefs"
 repository = "https://github.com/rparrett/bevy_simple_prefs"
 homepage = "https://github.com/rparrett/bevy_simple_prefs"
