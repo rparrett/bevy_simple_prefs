@@ -10,3 +10,9 @@ syn = "2.0"
 
 [lib]
 proc-macro = true
+
+[lints.rust]
+missing_docs = "warn"
+
+[lints.clippy]
+type_complexity = "allow"

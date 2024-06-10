@@ -1,3 +1,5 @@
+//! Example showing typical usage of `PrefsPlugin`.
+
 use bevy::{color::palettes::tailwind, ecs::system::EntityCommands, prelude::*};
 use bevy_simple_prefs::{Prefs, PrefsPlugin};
 
@@ -18,16 +20,12 @@ impl Default for Volume {
     }
 }
 
-#[derive(Resource, Reflect, Clone, Eq, PartialEq, Debug)]
+#[derive(Resource, Reflect, Clone, Eq, PartialEq, Debug, Default)]
 enum Difficulty {
     Easy,
+    #[default]
     Normal,
     Hard,
-}
-impl Default for Difficulty {
-    fn default() -> Self {
-        Self::Normal
-    }
 }
 impl Difficulty {
     fn next(&self) -> Self {

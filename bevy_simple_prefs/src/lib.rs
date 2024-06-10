@@ -1,3 +1,7 @@
+//! Bevy Simple Prefs
+//!
+//! A small Bevy plugin for persisting multiple `Resource`s to a single file.
+
 use std::marker::PhantomData;
 
 use bevy::{
@@ -13,20 +17,46 @@ use bevy::{
 };
 pub use bevy_simple_prefs_derive::*;
 
+/// A trait to be implemented by `bevy_simple_prefs_derive`.
 pub trait Prefs {
+    /// Runs when `PrefsPlugin` is built and initializes individual preference `Resource`s with default values.
     fn init(app: &mut App);
+    /// Runs when individual preferences `Resources` are changed and persists preferences.
     fn save(world: &mut World);
+    /// Loads preferences and updates individual preference `Resources`.
     fn load(world: &mut World);
 }
 
+/// The Bevy plugin responsible for persisting `T`.
+///
+/// ```rust
+/// use bevy::prelude::*;
+/// use bevy_simple_prefs::{Prefs, PrefsPlugin};
+///
+/// #[derive(Resource, Reflect, Clone, Eq, PartialEq, Debug, Default)]
+/// enum Difficulty {
+///     Easy,
+///     #[default]
+///     Normal,
+///     Hard,
+/// }
+///
+/// App::new()
+///     .add_plugins((DefaultPlugins, PrefsPlugin::<ExamplePrefs>::default()))
+///     .run();
+/// ```
 #[derive(Default)]
 pub struct PrefsPlugin<T> {
+    /// Settings for `PrefsPlugin`.
     pub settings: PrefsSettings<T>,
 }
 
+/// Settings for `PrefsPlugin`.
 #[derive(Resource)]
 pub struct PrefsSettings<T> {
+    /// Filename (or LocalStorage key) for the preferences file.
     pub filename: String,
+    /// PhantomData
     pub _phantom: PhantomData<T>,
 }
 
@@ -48,8 +78,10 @@ impl<T> Default for PrefsSettings<T> {
     }
 }
 
+/// Current status of the `PrefsPlugin`.
 #[derive(Resource)]
 pub struct PrefsStatus<T> {
+    /// `true` if the preferences have been
     pub loaded: bool,
     _phantom: PhantomData<T>,
 }
@@ -63,6 +95,7 @@ impl<T> Default for PrefsStatus<T> {
     }
 }
 
+/// A component that holds the task responsible for updating individual preference `Resource`s after they have been loaded.
 #[derive(Component)]
 pub struct LoadPrefsTask(pub Task<CommandQueue>);
 
@@ -86,6 +119,7 @@ fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<&mut LoadPref
     }
 }
 
+/// Loads preferences from persisted data.
 pub fn load_str(filename: &str) -> Option<String> {
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -113,6 +147,7 @@ pub fn load_str(filename: &str) -> Option<String> {
     }
 }
 
+/// Persists preferences.
 pub fn save_str(filename: &str, data: &str) {
     #[cfg(not(target_arch = "wasm32"))]
     {

@@ -1,3 +1,5 @@
+//! Example demonstrating how to keep track of the loading status of preferences.
+
 use bevy::prelude::*;
 use bevy_simple_prefs::{Prefs, PrefsPlugin};
 

@@ -1,8 +1,11 @@
+//! Derive macro for `bevy_simple_prefs`.
+
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, Data, DeriveInput, Fields};
 
+/// Derive macro for `bevy_simple_prefs`.
 #[proc_macro_derive(Prefs)]
 pub fn prefs_derive(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
