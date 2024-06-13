@@ -74,6 +74,9 @@ impl<T: Reflect + TypePath> Clone for PrefsSettings<T> {
 
 impl<T: Reflect + TypePath> Default for PrefsSettings<T> {
     fn default() -> Self {
+        // For wasm, we want to provide a unique name for a project by default
+        // to avoid collisions when doing local development or deploying multiple
+        // apps to the same webserver (for example, itch.io).
         let package_name = T::crate_name().unwrap_or("bevy_simple");
 
         Self {
