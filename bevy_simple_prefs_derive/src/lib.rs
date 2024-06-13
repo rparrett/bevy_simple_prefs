@@ -95,6 +95,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                             }).detach();
                     }
 
+                    #[cfg(not(target_arch = "wasm32"))]
                     fn load(world: &mut World) {
                         let filename = world.resource::<PrefsSettings<#name>>().filename.clone();
                         let entity = world.spawn_empty().id();
@@ -138,6 +139,46 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                         });
 
                         world.entity_mut(entity).insert(LoadPrefsTask(task));
+                    }
+
+                    // There's no task pool and no multi-threading on wasm, so just load everything,
+                    // toss it into the world, and update `PrefsStatus`.
+                    #[cfg(target_arch = "wasm32")]
+                    fn load(world: &mut World) {
+                        let filename = world.resource::<PrefsSettings<#name>>().filename.clone();
+
+                        let val = match load_str(&filename) {
+                            Some(serialized_value) => {
+                                let mut registry = TypeRegistry::new();
+                                registry.register::<#name>();
+
+                                let mut deserializer =
+                                    ron::Deserializer::from_str(&serialized_value).unwrap();
+
+                                let de = ReflectDeserializer::new(&registry);
+
+                                let mut val = #name::default();
+
+                                match de
+                                    .deserialize(&mut deserializer) {
+                                        Ok(dynamic_struct) => {
+                                            val.apply(&*dynamic_struct);
+                                        },
+                                        Err(e) => {
+                                            bevy::log::error!("Failed to deserialize prefs: {}", e);
+                                        }
+                                };
+
+                                val
+                            },
+                            None => {
+                                #name::default()
+                            }
+                        };
+
+                        #(#field_inserts;)*;
+
+                        world.resource_mut::<PrefsStatus<#name>>().loaded = true;
                     }
 
                     fn init(app: &mut App) {
