@@ -74,8 +74,10 @@ impl<T> Clone for PrefsSettings<T> {
 
 impl<T> Default for PrefsSettings<T> {
     fn default() -> Self {
+        let package_name = std::env::var("CARGO_PKG_NAME").unwrap_or("bevy_simple".to_string());
+
         Self {
-            filename: "prefs.ron".to_string(),
+            filename: format!("{}_prefs.ron", package_name),
             _phantom: Default::default(),
         }
     }
