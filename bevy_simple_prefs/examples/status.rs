@@ -24,7 +24,7 @@ fn main() {
             DefaultPlugins,
             PrefsPlugin::<ExamplePrefs> {
                 settings: PrefsSettings {
-                    filename: "status.ron".to_string(),
+                    filename: "custom_filename.ron".to_string(),
                     ..default()
                 },
             },

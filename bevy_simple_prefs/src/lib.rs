@@ -12,7 +12,7 @@ use bevy::{
         world::{CommandQueue, World},
     },
     log::warn,
-    reflect::Reflect,
+    reflect::{Reflect, TypePath},
     tasks::{block_on, futures_lite::future, Task},
 };
 pub use bevy_simple_prefs_derive::*;
@@ -49,7 +49,7 @@ pub trait Prefs {
 /// App::new().add_plugins(PrefsPlugin::<ExamplePrefs>::default());
 /// ```
 #[derive(Default)]
-pub struct PrefsPlugin<T> {
+pub struct PrefsPlugin<T: Reflect + TypePath> {
     /// Settings for `PrefsPlugin`.
     pub settings: PrefsSettings<T>,
 }
@@ -63,7 +63,7 @@ pub struct PrefsSettings<T> {
     pub _phantom: PhantomData<T>,
 }
 
-impl<T> Clone for PrefsSettings<T> {
+impl<T: Reflect + TypePath> Clone for PrefsSettings<T> {
     fn clone(&self) -> Self {
         Self {
             filename: self.filename.clone(),
@@ -72,9 +72,9 @@ impl<T> Clone for PrefsSettings<T> {
     }
 }
 
-impl<T> Default for PrefsSettings<T> {
+impl<T: Reflect + TypePath> Default for PrefsSettings<T> {
     fn default() -> Self {
-        let package_name = std::env::var("CARGO_PKG_NAME").unwrap_or("bevy_simple".to_string());
+        let package_name = T::crate_name().unwrap_or("bevy_simple");
 
         Self {
             filename: format!("{}_prefs.ron", package_name),
@@ -104,7 +104,7 @@ impl<T> Default for PrefsStatus<T> {
 #[derive(Component)]
 pub struct LoadPrefsTask(pub Task<CommandQueue>);
 
-impl<T: Prefs + Reflect> Plugin for PrefsPlugin<T> {
+impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(self.settings.clone());
         app.init_resource::<PrefsStatus<T>>();
