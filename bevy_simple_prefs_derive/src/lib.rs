@@ -35,7 +35,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                             let #field_name = world.get_resource_ref::<#field_type>().unwrap();
                         });
                         field_checks.push(quote! {
-                            !#field_name.is_changed()
+                            !#field_name.is_changed() || #field_name.is_added()
                         });
                         fields.push(quote! {
                             #field_name: #field_type
