@@ -22,6 +22,9 @@ ron = "0.8"
 [dev-dependencies]
 bevy = { version = "0.14.0-rc.2" }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+home = "0.5.9"
+
 [lints.rust]
 missing_docs = "warn"
 

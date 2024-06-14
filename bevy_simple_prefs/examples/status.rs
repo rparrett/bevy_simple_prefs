@@ -1,6 +1,6 @@
 //! Example demonstrating how to keep track of the loading status of preferences.
 
-use bevy::prelude::*;
+use bevy::{log::LogPlugin, prelude::*};
 use bevy_simple_prefs::{Prefs, PrefsPlugin};
 
 #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
@@ -21,13 +21,11 @@ struct ExamplePrefs {
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins,
-            PrefsPlugin::<ExamplePrefs> {
-                settings: PrefsSettings {
-                    filename: "custom_filename.ron".to_string(),
-                    ..default()
-                },
-            },
+            DefaultPlugins.set(LogPlugin {
+                filter: "status=debug,bevy_simple_prefs=debug".into(),
+                ..default()
+            }),
+            PrefsPlugin::<ExamplePrefs>::default(),
         ))
         .init_state::<MyAppState>()
         .add_systems(Update, check_status.run_if(in_state(MyAppState::Loading)))

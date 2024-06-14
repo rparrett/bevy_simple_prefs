@@ -73,14 +73,20 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                             return;
                         }
 
+                        ::bevy::log::debug!("bevy_simple_prefs initiating save");
+
                         let to_save = #name {
                             #(#field_assignments,)*
                         };
 
-                        let filename = world.resource::<PrefsSettings<#name>>().filename.clone();
+                        let settings = world.resource::<PrefsSettings<#name>>();
+                        let path = settings.path.clone();
+                        let filename = settings.filename.clone();
 
                         IoTaskPool::get()
                             .spawn(async move {
+                                ::bevy::log::debug!("bevy_simple_prefs saving");
+
                                 let mut registry = TypeRegistry::new();
                                 registry.register::<#name>();
 
@@ -91,19 +97,25 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                                     return;
                                 };
 
-                                save_str(&filename, &serialized_value);
+                                save_str(&path, &filename, &serialized_value);
                             }).detach();
                     }
 
                     #[cfg(not(target_arch = "wasm32"))]
                     fn load(world: &mut World) {
-                        let filename = world.resource::<PrefsSettings<#name>>().filename.clone();
+                        ::bevy::log::debug!("bevy_simple_prefs initiating load task");
+
+                        let settings = world.resource::<PrefsSettings<#name>>();
+                        let path = settings.path.clone();
+                        let filename = settings.filename.clone();
+
                         let entity = world.spawn_empty().id();
 
                         let task = IoTaskPool::get().spawn(async move {
+                            ::bevy::log::debug!("bevy_simple_prefs loading");
 
                             let val = (|| {
-                                let Some(serialized_value) = load_str(&filename) else {
+                                let Some(serialized_value) = load_str(&path, &filename) else {
                                     return #name::default();
                                 };
 
@@ -133,17 +145,19 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                     // toss it into the world, and update `PrefsStatus`.
                     #[cfg(target_arch = "wasm32")]
                     fn load(world: &mut World) {
-                        let filename = world.resource::<PrefsSettings<#name>>().filename.clone();
+                        ::bevy::log::debug!("bevy_simple_prefs loading");
+
+                        let settings = world.resource::<PrefsSettings<#name>>();
 
                         let val = (|| {
-                            let Some(serialized_value) = load_str(&filename) else {
+                            let Some(serialized_value) = load_str(&settings.path, &settings.filename) else {
                                 return #name::default();
                             };
 
                             match deserialize(&serialized_value) {
                                 Ok(v) => v,
                                 Err(e) => {
-                                    ::bevy::log::error!("Failed to deserialize prefs: {}", e);
+                                    ::bevy::log::error!("bevy_simple_prefs failed to deserialize prefs: {}", e);
                                     return #name::default();
                                 }
                             }

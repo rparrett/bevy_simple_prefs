@@ -1,6 +1,6 @@
 //! Example showing typical usage of `PrefsPlugin`.
 
-use bevy::{color::palettes::tailwind, ecs::system::EntityCommands, prelude::*};
+use bevy::{color::palettes::tailwind, ecs::system::EntityCommands, log::LogPlugin, prelude::*};
 use bevy_simple_prefs::{Prefs, PrefsPlugin};
 
 // All `Prefs` must also be `Reflect` and `Default`.
@@ -60,7 +60,13 @@ struct DifficultyLabel;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, PrefsPlugin::<ExamplePrefs>::default()))
+        .add_plugins((
+            DefaultPlugins.set(LogPlugin {
+                filter: "prefs=debug,bevy_simple_prefs=debug".into(),
+                ..default()
+            }),
+            PrefsPlugin::<ExamplePrefs>::default(),
+        ))
         .add_systems(Startup, setup)
         .add_systems(
             Update,

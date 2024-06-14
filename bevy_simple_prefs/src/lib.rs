@@ -2,7 +2,10 @@
 //!
 //! A small Bevy plugin for persisting multiple `Resource`s to a single file.
 
-use std::marker::PhantomData;
+use std::{
+    marker::PhantomData,
+    path::{Path, PathBuf},
+};
 
 use bevy::{
     app::{App, Plugin, Startup, Update},
@@ -49,31 +52,15 @@ pub trait Prefs {
 ///
 /// App::new().add_plugins(PrefsPlugin::<ExamplePrefs>::default());
 /// ```
-#[derive(Default)]
 pub struct PrefsPlugin<T: Reflect + TypePath> {
-    /// Settings for `PrefsPlugin`.
-    pub settings: PrefsSettings<T>,
-}
-
-/// Settings for `PrefsPlugin`.
-#[derive(Resource)]
-pub struct PrefsSettings<T> {
     /// Filename (or LocalStorage key) for the preferences file.
     pub filename: String,
+    /// Path to the directory where the preferences file will be stored.
+    pub path: PathBuf,
     /// PhantomData
     pub _phantom: PhantomData<T>,
 }
-
-impl<T: Reflect + TypePath> Clone for PrefsSettings<T> {
-    fn clone(&self) -> Self {
-        Self {
-            filename: self.filename.clone(),
-            _phantom: PhantomData,
-        }
-    }
-}
-
-impl<T: Reflect + TypePath> Default for PrefsSettings<T> {
+impl<T: Reflect + TypePath> Default for PrefsPlugin<T> {
     fn default() -> Self {
         // For wasm, we want to provide a unique name for a project by default
         // to avoid collisions when doing local development or deploying multiple
@@ -82,9 +69,21 @@ impl<T: Reflect + TypePath> Default for PrefsSettings<T> {
 
         Self {
             filename: format!("{}_prefs.ron", package_name),
+            path: Default::default(),
             _phantom: Default::default(),
         }
     }
+}
+
+/// Settings for `PrefsPlugin`.
+#[derive(Resource)]
+pub struct PrefsSettings<T> {
+    /// Filename (or LocalStorage key) for the preferences file.
+    pub filename: String,
+    /// Path to the directory where the preferences file will be stored.
+    pub path: PathBuf,
+    /// PhantomData
+    pub _phantom: PhantomData<T>,
 }
 
 /// Current status of the `PrefsPlugin`.
@@ -110,7 +109,11 @@ pub struct LoadPrefsTask(pub Task<CommandQueue>);
 
 impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(self.settings.clone());
+        app.insert_resource::<PrefsSettings<T>>(PrefsSettings {
+            filename: self.filename.clone(),
+            path: self.path.clone(),
+            _phantom: Default::default(),
+        });
         app.init_resource::<PrefsStatus<T>>();
 
         <T>::init(app);
@@ -123,16 +126,19 @@ impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
 fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<&mut LoadPrefsTask>) {
     for mut task in &mut transform_tasks {
         if let Some(mut commands_queue) = block_on(future::poll_once(&mut task.0)) {
+            bevy::log::debug!("adding pref resource insert commands");
             commands.append(&mut commands_queue);
         }
     }
 }
 
 /// Loads preferences from persisted data.
-pub fn load_str(filename: &str) -> Option<String> {
+pub fn load_str(dir: &Path, filename: &str) -> Option<String> {
     #[cfg(not(target_arch = "wasm32"))]
     {
-        std::fs::read_to_string(filename).ok()
+        let path = dir.join(filename);
+
+        std::fs::read_to_string(path).ok()
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -157,10 +163,12 @@ pub fn load_str(filename: &str) -> Option<String> {
 }
 
 /// Persists preferences.
-pub fn save_str(filename: &str, data: &str) {
+pub fn save_str(dir: &Path, filename: &str, data: &str) {
     #[cfg(not(target_arch = "wasm32"))]
     {
-        if let Err(e) = std::fs::write(filename, data) {
+        let path = dir.join(filename);
+
+        if let Err(e) = std::fs::write(path, data) {
             warn!("Failed to store save file: {:?}", e);
         }
     }

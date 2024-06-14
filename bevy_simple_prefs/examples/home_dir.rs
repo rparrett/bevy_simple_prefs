@@ -21,6 +21,7 @@ fn main() {
             PrefsPlugin::<ExamplePrefs> {
                 #[cfg(not(target_arch = "wasm32"))]
                 path: home::home_dir().unwrap_or_default(),
+                // Setting this is optional
                 filename: "custom_filename.ron".to_string(),
                 ..default()
             },
