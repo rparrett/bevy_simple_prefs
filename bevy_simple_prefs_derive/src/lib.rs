@@ -35,7 +35,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                             let #field_name = world.get_resource_ref::<#field_type>().unwrap();
                         });
                         field_checks.push(quote! {
-                            !#field_name.is_changed() || #field_name.is_added()
+                            !#field_name.is_changed()
                         });
                         fields.push(quote! {
                             #field_name: #field_type
@@ -70,6 +70,13 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                         #(#field_bindings)*
 
                         if #(#field_checks)&&* {
+                            return;
+                        }
+
+                        // Prevent saving from happening on the initial change detection after
+                        // inserting the resources on load.
+                        let status = world.get_resource_ref::<PrefsStatus<#name>>().unwrap();
+                        if status.is_changed() {
                             return;
                         }
 

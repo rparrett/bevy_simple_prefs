@@ -11,6 +11,7 @@ use bevy::{
     app::{App, Plugin, Startup, Update},
     ecs::{
         component::Component,
+        schedule::IntoSystemConfigs,
         system::{Commands, Query, Resource},
         world::{CommandQueue, World},
     },
@@ -118,7 +119,8 @@ impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
 
         <T>::init(app);
 
-        app.add_systems(Update, (<T>::save, handle_tasks));
+        // `save` checks load status and needs to run in the same frame after `handle_tasks`.
+        app.add_systems(Update, (handle_tasks, <T>::save).chain());
         app.add_systems(Startup, <T>::load);
     }
 }
@@ -126,7 +128,7 @@ impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
 fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<&mut LoadPrefsTask>) {
     for mut task in &mut transform_tasks {
         if let Some(mut commands_queue) = block_on(future::poll_once(&mut task.0)) {
-            bevy::log::debug!("adding pref resource insert commands");
+            bevy::log::debug!("adding pref resource update commands");
             commands.append(&mut commands_queue);
         }
     }
