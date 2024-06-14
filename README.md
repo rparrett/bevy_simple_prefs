@@ -7,6 +7,10 @@ An unambitious Bevy plugin for persisting multiple Bevy `Resources` into a singl
 - Does IO in Bevy's async task pool
 - WASM compatible
 
+## Usage
+
+See [examples/prefs.rs](./examples/prefs.rs)
+
 ## Compatibility
 
 | `bevy_simple_prefs` | `bevy` |
