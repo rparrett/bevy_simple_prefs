@@ -12,10 +12,11 @@ use bevy::{
         world::{CommandQueue, World},
     },
     log::warn,
-    reflect::{Reflect, TypePath},
+    reflect::{serde::ReflectDeserializer, GetTypeRegistration, Reflect, TypePath, TypeRegistry},
     tasks::{block_on, futures_lite::future, Task},
 };
 pub use bevy_simple_prefs_derive::*;
+use serde::de::DeserializeSeed;
 
 /// A trait to be implemented by `bevy_simple_prefs_derive`.
 pub trait Prefs {
@@ -186,4 +187,21 @@ pub fn save_str(filename: &str, data: &str) {
             warn!("Failed to store save file: {:?}", e);
         }
     }
+}
+
+/// Deserializes preferences
+pub fn deserialize<T: Reflect + GetTypeRegistration + Default>(
+    serialized: &str,
+) -> Result<T, ron::de::Error> {
+    let mut registry = TypeRegistry::new();
+    registry.register::<T>();
+
+    let mut deserializer = ron::Deserializer::from_str(serialized).unwrap();
+
+    let de = ReflectDeserializer::new(&registry);
+    let dynamic_struct = de.deserialize(&mut deserializer)?;
+
+    let mut val = T::default();
+    val.apply(&*dynamic_struct);
+    Ok(val)
 }

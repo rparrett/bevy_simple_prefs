@@ -62,7 +62,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                 use bevy::reflect::serde::{ReflectSerializer, ReflectDeserializer};
                 use serde::de::DeserializeSeed;
                 use ron::ser::{to_string_pretty, PrettyConfig};
-                use bevy_simple_prefs::{save_str, load_str, PrefsSettings, LoadPrefsTask, PrefsStatus};
+                use bevy_simple_prefs::{save_str, load_str, PrefsSettings, LoadPrefsTask, PrefsStatus, deserialize};
                 use bevy::tasks::IoTaskPool;
 
                 impl Prefs for #name {
@@ -101,32 +101,20 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                         let entity = world.spawn_empty().id();
 
                         let task = IoTaskPool::get().spawn(async move {
-                            let val = (|| { match load_str(&filename) {
-                                Some(serialized_value) => {
-                                    let mut registry = TypeRegistry::new();
-                                    registry.register::<#name>();
 
-                                    let mut deserializer =
-                                        ron::Deserializer::from_str(&serialized_value).unwrap();
+                            let val = (|| {
+                                let Some(serialized_value) = load_str(&filename) else {
+                                    return #name::default();
+                                };
 
-                                    let de = ReflectDeserializer::new(&registry);
-                                    let dynamic_struct = match de
-                                        .deserialize(&mut deserializer) {
-                                            Ok(ds) => ds,
-                                            Err(e) => {
-                                                bevy::log::error!("Failed to deserialize prefs: {}", e);
-                                                return #name::default();
-                                            }
-                                    };
-
-                                    let mut val = #name::default();
-                                    val.apply(&*dynamic_struct);
-                                    val
-                                },
-                                None => {
-                                    #name::default()
+                                match deserialize(&serialized_value) {
+                                    Ok(v) => v,
+                                    Err(e) => {
+                                        ::bevy::log::error!("Failed to deserialize prefs: {}", e);
+                                        return #name::default();
+                                    }
                                 }
-                            }})();
+                            })();
 
                             let mut command_queue = CommandQueue::default();
                             command_queue.push(move |world: &mut World| {
@@ -147,34 +135,19 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                     fn load(world: &mut World) {
                         let filename = world.resource::<PrefsSettings<#name>>().filename.clone();
 
-                        let val = match load_str(&filename) {
-                            Some(serialized_value) => {
-                                let mut registry = TypeRegistry::new();
-                                registry.register::<#name>();
+                        let val = (|| {
+                            let Some(serialized_value) = load_str(&filename) else {
+                                return #name::default();
+                            };
 
-                                let mut deserializer =
-                                    ron::Deserializer::from_str(&serialized_value).unwrap();
-
-                                let de = ReflectDeserializer::new(&registry);
-
-                                let mut val = #name::default();
-
-                                match de
-                                    .deserialize(&mut deserializer) {
-                                        Ok(dynamic_struct) => {
-                                            val.apply(&*dynamic_struct);
-                                        },
-                                        Err(e) => {
-                                            bevy::log::error!("Failed to deserialize prefs: {}", e);
-                                        }
-                                };
-
-                                val
-                            },
-                            None => {
-                                #name::default()
+                            match deserialize(&serialized_value) {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    ::bevy::log::error!("Failed to deserialize prefs: {}", e);
+                                    return #name::default();
+                                }
                             }
-                        };
+                        })();
 
                         #(#field_inserts;)*;
 
