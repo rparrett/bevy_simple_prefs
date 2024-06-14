@@ -12,13 +12,8 @@ struct ExamplePrefs {
 }
 
 // All `Prefs` fields must be `Resource`, `Reflect`, and `Clone`.
-#[derive(Resource, Reflect, Clone, Eq, PartialEq)]
+#[derive(Resource, Reflect, Clone, Eq, PartialEq, Debug)]
 struct Volume(pub u32);
-impl Default for Volume {
-    fn default() -> Self {
-        Self(50)
-    }
-}
 
 #[derive(Resource, Reflect, Clone, Eq, PartialEq, Debug, Default)]
 enum Difficulty {
@@ -27,46 +22,16 @@ enum Difficulty {
     Normal,
     Hard,
 }
-impl Difficulty {
-    fn next(&self) -> Self {
-        match self {
-            Self::Easy => Self::Normal,
-            Self::Normal => Self::Hard,
-            Self::Hard => Self::Hard,
-        }
-    }
-    fn prev(&self) -> Self {
-        match self {
-            Self::Easy => Self::Easy,
-            Self::Normal => Self::Easy,
-            Self::Hard => Self::Normal,
-        }
-    }
-}
-
-#[derive(Component)]
-struct VolumeUpButton;
-#[derive(Component)]
-struct VolumeDownButton;
-#[derive(Component)]
-struct VolumeLabel;
-
-#[derive(Component)]
-struct DifficultyUpButton;
-#[derive(Component)]
-struct DifficultyDownButton;
-#[derive(Component)]
-struct DifficultyLabel;
 
 fn main() {
     App::new()
-        .add_plugins((
-            DefaultPlugins.set(LogPlugin {
-                filter: "prefs=debug,bevy_simple_prefs=debug".into(),
-                ..default()
-            }),
-            PrefsPlugin::<ExamplePrefs>::default(),
-        ))
+        .add_plugins(DefaultPlugins.set(LogPlugin {
+            filter: "prefs=debug,bevy_simple_prefs=debug".into(),
+            ..default()
+        }))
+        // `PrefsPlugin` is generic, add as many different types of
+        // prefs as you want.
+        .add_plugins(PrefsPlugin::<ExamplePrefs>::default())
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -89,11 +54,27 @@ const NORMAL_BUTTON: Srgba = tailwind::EMERALD_500;
 const HOVERED_BUTTON: Srgba = tailwind::EMERALD_600;
 const PRESSED_BUTTON: Srgba = tailwind::EMERALD_700;
 
+#[derive(Component)]
+struct VolumeUpButton;
+#[derive(Component)]
+struct VolumeDownButton;
+#[derive(Component)]
+struct VolumeLabel;
+
+#[derive(Component)]
+struct DifficultyUpButton;
+#[derive(Component)]
+struct DifficultyDownButton;
+#[derive(Component)]
+struct DifficultyLabel;
+
 fn volume_buttons(
     up_query: Query<&Interaction, (Changed<Interaction>, With<VolumeUpButton>)>,
     down_query: Query<&Interaction, (Changed<Interaction>, With<VolumeDownButton>)>,
     mut volume: ResMut<Volume>,
 ) {
+    // Prefs are persisted when the individual resources are changed.
+    // Be careful when mutably dereferencing, as this can trigger unnecessary IO.
     let current = volume.bypass_change_detection().0;
 
     for _ in up_query.iter().filter(|i| **i == Interaction::Pressed) {
@@ -277,4 +258,27 @@ fn build_button<M: Component>(parent: &mut ChildBuilder, text: String, marker: M
                 },
             ));
         });
+}
+
+impl Difficulty {
+    fn next(&self) -> Self {
+        match self {
+            Self::Easy => Self::Normal,
+            Self::Normal => Self::Hard,
+            Self::Hard => Self::Hard,
+        }
+    }
+    fn prev(&self) -> Self {
+        match self {
+            Self::Easy => Self::Easy,
+            Self::Normal => Self::Easy,
+            Self::Hard => Self::Normal,
+        }
+    }
+}
+
+impl Default for Volume {
+    fn default() -> Self {
+        Self(50)
+    }
 }
