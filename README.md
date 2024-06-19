@@ -1,13 +1,16 @@
 # bevy_simple_prefs
 
-An unambitious Bevy plugin for persisting multiple Bevy `Resources` into a single preferences file, suitable for small projects.
+An unambitious Bevy plugin for persisting multiple Bevy `Resources` into a single preferences file, suitable for small projects like jam games.
 
-- Automatically persists prefs when they are modified
 - Persists to a single `ron` file
 - Does IO in Bevy's async task pool
 - WASM compatible
 
 ## Usage
+
+- Derive `Prefs` on a `struct` with members that are `Resource`s you want to be saved
+- Simply modify your `Resource`s to initiate a save
+- Write code that reacts to those `Resource`s changing, if you want
 
 See [examples/prefs.rs](./examples/prefs.rs)
 
@@ -25,4 +28,4 @@ Please keep PRs small and scoped to a single feature or fix.
 
 ## Alternatives
 
-If you need more features, check out [`bevy-persistent`](https://crates.io/crates/bevy-persistent) or [`bevy-settings`](https://crates.io/crates/bevy-settings).
+If you need more features, check out [`bevy-persistent`](https://crates.io/crates/bevy-persistent) or [`bevy-settings`](https://crates.io/crates/bevy-settings). There are also a few other options in the [Bevy Assets persistence section](https://bevyengine.org/assets/#persistence).
