@@ -30,7 +30,8 @@ fn main() {
             ..default()
         }))
         // `PrefsPlugin` is generic, add as many different types of
-        // prefs as you want.
+        // prefs as you want. Make sure to set a unique filename for
+        // each.
         .add_plugins(PrefsPlugin::<ExamplePrefs>::default())
         .add_systems(Startup, setup)
         .add_systems(

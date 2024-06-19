@@ -57,6 +57,8 @@ pub struct PrefsPlugin<T: Reflect + TypePath> {
     /// Filename (or LocalStorage key) for the preferences file.
     pub filename: String,
     /// Path to the directory where the preferences file will be stored.
+    ///
+    /// This value is not used in WASM builds.
     pub path: PathBuf,
     /// PhantomData
     pub _phantom: PhantomData<T>,

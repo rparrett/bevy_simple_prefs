@@ -1,4 +1,8 @@
 //! Example demonstrating how to keep track of the loading status of preferences.
+//!
+//! Prefs are initialized with their default values when an App starts, and updated
+//! with the loaded values later. You may want to wait until they have been loaded
+//! before running systems that rely on them.
 
 use bevy::{log::LogPlugin, prelude::*};
 use bevy_simple_prefs::{Prefs, PrefsPlugin};

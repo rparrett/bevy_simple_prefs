@@ -19,9 +19,9 @@ fn main() {
                 ..default()
             }),
             PrefsPlugin::<ExamplePrefs> {
-                #[cfg(not(target_arch = "wasm32"))]
+                // This value won't be used in WASM builds
                 path: home::home_dir().unwrap_or_default(),
-                // Setting this is optional
+                // Setting this is optional. `(your_package_name)_prefs.ron` will be used by default.
                 filename: "custom_filename.ron".to_string(),
                 ..default()
             },
