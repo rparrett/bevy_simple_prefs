@@ -57,14 +57,6 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
             }
 
             quote! {
-                use bevy::ecs::{system::{Commands, Res}, change_detection::DetectChanges, world::CommandQueue};
-                use bevy::reflect::TypeRegistry;
-                use bevy::reflect::serde::{ReflectSerializer, ReflectDeserializer};
-                use serde::de::DeserializeSeed;
-                use ron::ser::{to_string_pretty, PrettyConfig};
-                use bevy_simple_prefs::{save_str, load_str, PrefsSettings, LoadPrefsTask, PrefsStatus, deserialize};
-                use bevy::tasks::IoTaskPool;
-
                 impl Prefs for #name {
                     fn save(world: &mut World) {
                         #(#field_bindings)*
@@ -75,7 +67,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
 
                         // Prevent saving from happening on the initial change detection after
                         // inserting the resources on load.
-                        let status = world.get_resource_ref::<PrefsStatus<#name>>().unwrap();
+                        let status = world.get_resource_ref::<::bevy_simple_prefs::PrefsStatus<#name>>().unwrap();
                         if status.is_changed() {
                             return;
                         }
@@ -86,25 +78,25 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                             #(#field_assignments,)*
                         };
 
-                        let settings = world.resource::<PrefsSettings<#name>>();
+                        let settings = world.resource::<::bevy_simple_prefs::PrefsSettings<#name>>();
                         let path = settings.path.clone();
                         let filename = settings.filename.clone();
 
-                        IoTaskPool::get()
+                        ::bevy::tasks::IoTaskPool::get()
                             .spawn(async move {
                                 ::bevy::log::debug!("bevy_simple_prefs saving");
 
-                                let mut registry = TypeRegistry::new();
+                                let mut registry = ::bevy::reflect::TypeRegistry::new();
                                 registry.register::<#name>();
 
-                                let config = PrettyConfig::default();
-                                let reflect_serializer = ReflectSerializer::new(&to_save, &registry);
-                                let Ok(serialized_value) = to_string_pretty(&reflect_serializer, config) else {
+                                let config = ::ron::ser::PrettyConfig::default();
+                                let reflect_serializer = ::bevy::reflect::serde::ReflectSerializer::new(&to_save, &registry);
+                                let Ok(serialized_value) = ::ron::ser::to_string_pretty(&reflect_serializer, config) else {
                                     bevy::log::error!("Failed to serialize prefs.");
                                     return;
                                 };
 
-                                save_str(&path, &filename, &serialized_value);
+                                ::bevy_simple_prefs::save_str(&path, &filename, &serialized_value);
                             }).detach();
                     }
 
@@ -112,21 +104,21 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                     fn load(world: &mut World) {
                         ::bevy::log::debug!("bevy_simple_prefs initiating load task");
 
-                        let settings = world.resource::<PrefsSettings<#name>>();
+                        let settings = world.resource::<::bevy_simple_prefs::PrefsSettings<#name>>();
                         let path = settings.path.clone();
                         let filename = settings.filename.clone();
 
                         let entity = world.spawn_empty().id();
 
-                        let task = IoTaskPool::get().spawn(async move {
+                        let task = ::bevy::tasks::IoTaskPool::get().spawn(async move {
                             ::bevy::log::debug!("bevy_simple_prefs loading");
 
                             let val = (|| {
-                                let Some(serialized_value) = load_str(&path, &filename) else {
+                                let Some(serialized_value) = ::bevy_simple_prefs::load_str(&path, &filename) else {
                                     return #name::default();
                                 };
 
-                                match deserialize(&serialized_value) {
+                                match ::bevy_simple_prefs::deserialize(&serialized_value) {
                                     Ok(v) => v,
                                     Err(e) => {
                                         ::bevy::log::error!("Failed to deserialize prefs: {}", e);
@@ -135,17 +127,17 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                                 }
                             })();
 
-                            let mut command_queue = CommandQueue::default();
+                            let mut command_queue = ::bevy::ecs::world::CommandQueue::default();
                             command_queue.push(move |world: &mut World| {
                                 #(#field_inserts;)*;
-                                world.resource_mut::<PrefsStatus<#name>>().loaded = true;
+                                world.resource_mut::<::bevy_simple_prefs::PrefsStatus<#name>>().loaded = true;
                                 world.despawn(entity);
                             });
 
                             command_queue
                         });
 
-                        world.entity_mut(entity).insert(LoadPrefsTask(task));
+                        world.entity_mut(entity).insert(::bevy_simple_prefs::LoadPrefsTask(task));
                     }
 
                     // There's no task pool and no multi-threading on wasm, so just load everything,
@@ -154,14 +146,14 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                     fn load(world: &mut World) {
                         ::bevy::log::debug!("bevy_simple_prefs loading");
 
-                        let settings = world.resource::<PrefsSettings<#name>>();
+                        let settings = world.resource::<::bevy_simple_prefs::PrefsSettings<#name>>();
 
                         let val = (|| {
-                            let Some(serialized_value) = load_str(&settings.path, &settings.filename) else {
+                            let Some(serialized_value) = ::bevy_simple_prefs::load_str(&settings.path, &settings.filename) else {
                                 return #name::default();
                             };
 
-                            match deserialize(&serialized_value) {
+                            match ::bevy_simple_prefs::deserialize(&serialized_value) {
                                 Ok(v) => v,
                                 Err(e) => {
                                     ::bevy::log::error!("bevy_simple_prefs failed to deserialize prefs: {}", e);
@@ -172,7 +164,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
 
                         #(#field_inserts;)*;
 
-                        world.resource_mut::<PrefsStatus<#name>>().loaded = true;
+                        world.resource_mut::<::bevy_simple_prefs::PrefsStatus<#name>>().loaded = true;
                     }
 
                     fn init(app: &mut App) {

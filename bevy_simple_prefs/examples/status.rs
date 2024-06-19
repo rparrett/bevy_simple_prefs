@@ -5,7 +5,7 @@
 //! before running systems that rely on them.
 
 use bevy::{log::LogPlugin, prelude::*};
-use bevy_simple_prefs::{Prefs, PrefsPlugin};
+use bevy_simple_prefs::{Prefs, PrefsPlugin, PrefsStatus};
 
 #[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
 enum MyAppState {
