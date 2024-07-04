@@ -122,20 +122,20 @@ fn difficulty_label(
 
 fn button_style(
     mut interaction_query: Query<
-        (&Interaction, &mut UiImage),
+        (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    for (interaction, mut image) in &mut interaction_query {
+    for (interaction, mut color) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                image.color = PRESSED_BUTTON.into();
+                *color = PRESSED_BUTTON.into();
             }
             Interaction::Hovered => {
-                image.color = HOVERED_BUTTON.into();
+                *color = HOVERED_BUTTON.into();
             }
             Interaction::None => {
-                image.color = NORMAL_BUTTON.into();
+                *color = NORMAL_BUTTON.into();
             }
         }
     }
@@ -244,7 +244,7 @@ fn build_button<M: Component>(parent: &mut ChildBuilder, text: String, marker: M
                     ..default()
                 },
                 border_radius: BorderRadius::all(Val::Px(5.)),
-                image: UiImage::default().with_color(NORMAL_BUTTON.into()),
+                background_color: NORMAL_BUTTON.into(),
                 ..default()
             },
             marker,
