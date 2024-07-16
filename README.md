@@ -1,5 +1,9 @@
 # bevy_simple_prefs
 
+[![crates.io](https://img.shields.io/crates/v/bevy_simple_prefs.svg)](https://crates.io/crates/bevy_simple_prefs)
+[![docs](https://docs.rs/bevy_simple_prefs/badge.svg)](https://docs.rs/bevy_simple_prefs)
+[![Following released Bevy versions](https://img.shields.io/badge/Bevy%20tracking-released%20version-lightblue)](https://bevyengine.org/learn/book/plugin-development/#main-branch-tracking)
+
 An unambitious Bevy plugin for persisting multiple Bevy `Resources` into a single preferences file, suitable for small projects like jam games.
 
 - Persists to a single `ron` file
