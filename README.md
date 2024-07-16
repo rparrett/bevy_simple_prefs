@@ -4,7 +4,7 @@
 [![docs](https://docs.rs/bevy_simple_prefs/badge.svg)](https://docs.rs/bevy_simple_prefs)
 [![Following released Bevy versions](https://img.shields.io/badge/Bevy%20tracking-released%20version-lightblue)](https://bevyengine.org/learn/book/plugin-development/#main-branch-tracking)
 
-An unambitious Bevy plugin for persisting multiple Bevy `Resources` into a single preferences file, suitable for small projects like jam games.
+An unambitious Bevy plugin for persisting multiple Bevy `Resource`s into a single preferences file, suitable for small projects like jam games.
 
 - Persists to a single `ron` file
 - Does IO in Bevy's async task pool
@@ -32,4 +32,4 @@ Please keep PRs small and scoped to a single feature or fix.
 
 ## Alternatives
 
-If you need more features, check out [`bevy-persistent`](https://crates.io/crates/bevy-persistent) or [`bevy-settings`](https://crates.io/crates/bevy-settings). There are also a few other options in the [Bevy Assets persistence section](https://bevyengine.org/assets/#persistence).
+If you need more features, check out [`bevy-persistent`](https://crates.io/crates/bevy-persistent) or [`bevy-settings`](https://crates.io/crates/bevy-settings). There are also a few other options in the [persistence section](https://bevyengine.org/assets/#persistence) of Bevy Assets.
