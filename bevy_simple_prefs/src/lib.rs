@@ -3,6 +3,7 @@
 //! A small Bevy plugin for persisting multiple `Resource`s to a single file.
 
 use std::{
+    any::TypeId,
     marker::PhantomData,
     path::{Path, PathBuf},
 };
@@ -16,7 +17,10 @@ use bevy::{
         world::{CommandQueue, World},
     },
     log::warn,
-    reflect::{serde::ReflectDeserializer, GetTypeRegistration, Reflect, TypePath, TypeRegistry},
+    reflect::{
+        serde::{ReflectDeserializer, TypedReflectDeserializer},
+        GetTypeRegistration, Reflect, TypePath, TypeRegistry,
+    },
     tasks::{block_on, futures_lite::future, Task},
 };
 pub use bevy_simple_prefs_derive::*;
@@ -207,10 +211,11 @@ pub fn deserialize<T: Reflect + GetTypeRegistration + Default>(
 ) -> Result<T, ron::de::Error> {
     let mut registry = TypeRegistry::new();
     registry.register::<T>();
+    let registration = registry.get(TypeId::of::<T>()).unwrap();
 
     let mut deserializer = ron::Deserializer::from_str(serialized).unwrap();
 
-    let de = ReflectDeserializer::new(&registry);
+    let de = TypedReflectDeserializer::new(registration, &registry);
     let dynamic_struct = de.deserialize(&mut deserializer)?;
 
     let mut val = T::default();

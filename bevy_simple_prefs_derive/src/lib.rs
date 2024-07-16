@@ -90,7 +90,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                                 registry.register::<#name>();
 
                                 let config = ::ron::ser::PrettyConfig::default();
-                                let reflect_serializer = ::bevy::reflect::serde::ReflectSerializer::new(&to_save, &registry);
+                                let reflect_serializer = ::bevy::reflect::serde::TypedReflectSerializer::new(&to_save, &registry);
                                 let Ok(serialized_value) = ::ron::ser::to_string_pretty(&reflect_serializer, config) else {
                                     bevy::log::error!("Failed to serialize prefs.");
                                     return;
