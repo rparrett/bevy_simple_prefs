@@ -18,8 +18,7 @@ use bevy::{
     },
     log::warn,
     reflect::{
-        serde::{TypedReflectDeserializer},
-        GetTypeRegistration, Reflect, TypePath, TypeRegistry,
+        serde::TypedReflectDeserializer, GetTypeRegistration, Reflect, TypePath, TypeRegistry,
     },
     tasks::{block_on, futures_lite::future, Task},
 };
