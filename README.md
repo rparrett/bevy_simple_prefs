@@ -16,7 +16,7 @@ An unambitious Bevy plugin for persisting multiple Bevy `Resource`s into a singl
 - Simply modify your `Resource`s to initiate a save
 - Write code that reacts to those `Resource`s changing, if you want
 
-See [examples/prefs.rs](./examples/prefs.rs)
+See [examples/prefs.rs](./bevy_simple_prefs/examples/prefs.rs)
 
 ## Compatibility
 
