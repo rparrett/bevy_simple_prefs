@@ -86,12 +86,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                             .spawn(async move {
                                 ::bevy::log::debug!("bevy_simple_prefs saving");
 
-                                let mut registry = ::bevy::reflect::TypeRegistry::new();
-                                registry.register::<#name>();
-
-                                let config = ::ron::ser::PrettyConfig::default();
-                                let reflect_serializer = ::bevy::reflect::serde::TypedReflectSerializer::new(&to_save, &registry);
-                                let Ok(serialized_value) = ::ron::ser::to_string_pretty(&reflect_serializer, config) else {
+                                let Ok(serialized_value) = ::bevy_simple_prefs::serialize(&to_save) else {
                                     bevy::log::error!("Failed to serialize prefs.");
                                     return;
                                 };
