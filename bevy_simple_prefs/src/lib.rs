@@ -18,11 +18,13 @@ use bevy::{
     },
     log::warn,
     reflect::{
-        serde::TypedReflectDeserializer, GetTypeRegistration, Reflect, TypePath, TypeRegistry,
+        serde::{TypedReflectDeserializer, TypedReflectSerializer},
+        GetTypeRegistration, Reflect, TypePath, TypeRegistry,
     },
     tasks::{block_on, futures_lite::future, Task},
 };
 pub use bevy_simple_prefs_derive::*;
+use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::de::DeserializeSeed;
 
 /// A trait to be implemented by `bevy_simple_prefs_derive`.
@@ -220,4 +222,14 @@ pub fn deserialize<T: Reflect + GetTypeRegistration + Default>(
     let mut val = T::default();
     val.apply(&*dynamic_struct);
     Ok(val)
+}
+
+/// Serialize preferences
+pub fn serialize<T: Reflect + GetTypeRegistration>(to_save: &T) -> Result<String, ron::Error> {
+    let mut registry = TypeRegistry::new();
+    registry.register::<T>();
+
+    let config = PrettyConfig::default();
+    let reflect_serializer = TypedReflectSerializer::new(to_save, &registry);
+    to_string_pretty(&reflect_serializer, config)
 }
