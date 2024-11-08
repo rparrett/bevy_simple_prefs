@@ -90,7 +90,7 @@ fn volume_buttons(
 
 fn volume_label(volume: Res<Volume>, mut text_query: Query<&mut Text, With<VolumeLabel>>) {
     for mut text in &mut text_query {
-        text.sections[0].value.clone_from(&format!("{}", volume.0));
+        text.0.clone_from(&format!("{}", volume.0));
     }
 }
 
@@ -114,9 +114,7 @@ fn difficulty_label(
     mut text_query: Query<&mut Text, With<DifficultyLabel>>,
 ) {
     for mut text in &mut text_query {
-        text.sections[0]
-            .value
-            .clone_from(&format!("{:?}", *difficulty));
+        text.0.clone_from(&format!("{:?}", *difficulty));
     }
 }
 
@@ -142,19 +140,16 @@ fn button_style(
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                flex_direction: FlexDirection::Column,
-                row_gap: Val::Px(5.),
-                ..default()
-            },
+        .spawn(Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            flex_direction: FlexDirection::Column,
+            row_gap: Val::Px(5.),
             ..default()
         })
         .with_children(|parent| {
@@ -181,52 +176,47 @@ fn setup(mut commands: Commands) {
 }
 
 fn build_header(parent: &mut ChildBuilder, text: String) {
-    parent.spawn(TextBundle::from_section(
-        text,
-        TextStyle {
+    parent.spawn((
+        Text::new(text),
+        TextFont {
             font_size: TEXT_SIZE,
-            color: TEXT_COLOR.into(),
             ..default()
         },
+        TextColor(TEXT_COLOR.into()),
     ));
 }
 
 fn build_row<'a>(parent: &'a mut ChildBuilder) -> EntityCommands<'a> {
-    parent.spawn(NodeBundle {
-        style: Style {
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            column_gap: Val::Px(5.),
-            ..default()
-        },
+    parent.spawn(Node {
+        align_items: AlignItems::Center,
+        justify_content: JustifyContent::Center,
+        column_gap: Val::Px(5.),
         ..default()
     })
 }
 
 fn build_label<M: Component>(parent: &mut ChildBuilder, text: String, marker: M) {
     parent
-        .spawn(NodeBundle {
-            style: Style {
+        .spawn((
+            Node {
                 width: Val::Px(150.0),
                 height: Val::Px(50.0),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 ..default()
             },
-            border_radius: BorderRadius::all(Val::Px(5.)),
-            background_color: LABEL_BACKGROUND.into(),
-            ..default()
-        })
+            BorderRadius::all(Val::Px(5.)),
+            BackgroundColor(LABEL_BACKGROUND.into()),
+        ))
         .with_children(|parent| {
             parent.spawn((
-                TextBundle::from_section(
-                    text,
-                    TextStyle {
-                        font_size: TEXT_SIZE,
-                        color: TEXT_COLOR.into(),
-                        ..default()
-                    },
-                ),
+                Text::new(text),
+                TextFont {
+                    font_size: TEXT_SIZE,
+
+                    ..default()
+                },
+                TextColor(TEXT_COLOR.into()),
                 marker,
             ));
         });
@@ -235,28 +225,26 @@ fn build_label<M: Component>(parent: &mut ChildBuilder, text: String, marker: M)
 fn build_button<M: Component>(parent: &mut ChildBuilder, text: String, marker: M) {
     parent
         .spawn((
-            ButtonBundle {
-                style: Style {
-                    width: Val::Px(50.0),
-                    height: Val::Px(50.0),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
-                border_radius: BorderRadius::all(Val::Px(5.)),
-                background_color: NORMAL_BUTTON.into(),
+            Button,
+            Node {
+                width: Val::Px(50.0),
+                height: Val::Px(50.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
                 ..default()
             },
+            BorderRadius::all(Val::Px(5.)),
+            BackgroundColor(NORMAL_BUTTON.into()),
             marker,
         ))
         .with_children(|parent| {
-            parent.spawn(TextBundle::from_section(
-                text,
-                TextStyle {
+            parent.spawn((
+                Text::new(text),
+                TextFont {
                     font_size: TEXT_SIZE,
-                    color: BUTTON_TEXT_COLOR.into(),
                     ..default()
                 },
+                TextColor(BUTTON_TEXT_COLOR.into()),
             ));
         });
 }
