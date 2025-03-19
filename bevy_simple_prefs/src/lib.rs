@@ -12,11 +12,11 @@ use bevy::{
     app::{App, Plugin, Startup, Update},
     ecs::{
         component::Component,
-        schedule::IntoSystemConfigs,
-        system::{Commands, Query, Resource},
+        system::{Commands, Query},
         world::{CommandQueue, World},
     },
     log::warn,
+    prelude::{IntoScheduleConfigs, Resource},
     reflect::{
         serde::{TypedReflectDeserializer, TypedReflectSerializer},
         GetTypeRegistration, Reflect, TypePath, TypeRegistry,

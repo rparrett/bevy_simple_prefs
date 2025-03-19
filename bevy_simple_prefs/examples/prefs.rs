@@ -175,7 +175,7 @@ fn setup(mut commands: Commands) {
         });
 }
 
-fn build_header(parent: &mut ChildBuilder, text: String) {
+fn build_header(parent: &mut ChildSpawnerCommands, text: String) {
     parent.spawn((
         Text::new(text),
         TextFont {
@@ -186,7 +186,7 @@ fn build_header(parent: &mut ChildBuilder, text: String) {
     ));
 }
 
-fn build_row<'a>(parent: &'a mut ChildBuilder) -> EntityCommands<'a> {
+fn build_row<'a>(parent: &'a mut ChildSpawnerCommands) -> EntityCommands<'a> {
     parent.spawn(Node {
         align_items: AlignItems::Center,
         justify_content: JustifyContent::Center,
@@ -195,7 +195,7 @@ fn build_row<'a>(parent: &'a mut ChildBuilder) -> EntityCommands<'a> {
     })
 }
 
-fn build_label<M: Component>(parent: &mut ChildBuilder, text: String, marker: M) {
+fn build_label<M: Component>(parent: &mut ChildSpawnerCommands, text: String, marker: M) {
     parent
         .spawn((
             Node {
@@ -222,7 +222,7 @@ fn build_label<M: Component>(parent: &mut ChildBuilder, text: String, marker: M)
         });
 }
 
-fn build_button<M: Component>(parent: &mut ChildBuilder, text: String, marker: M) {
+fn build_button<M: Component>(parent: &mut ChildSpawnerCommands, text: String, marker: M) {
     parent
         .spawn((
             Button,
