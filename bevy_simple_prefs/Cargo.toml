@@ -19,11 +19,11 @@ serde = "1.0"
 ron = "0.8"
 
 [dependencies.bevy]
-version = "0.16.0-rc.0"
+version = "0.16.0"
 default-features = false
 
 [dev-dependencies.bevy]
-version = "0.16.0-rc.0"
+version = "0.16.0"
 default-features = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
