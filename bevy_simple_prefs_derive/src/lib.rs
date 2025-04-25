@@ -3,7 +3,7 @@
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput, Fields};
+use syn::{Data, DeriveInput, Fields, parse_macro_input};
 
 /// Derive macro for `bevy_simple_prefs`.
 #[proc_macro_derive(Prefs)]
@@ -26,7 +26,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
 
             // Iterate over the fields of the struct
             match &data_struct.fields {
-                Fields::Named(ref fields_named) => {
+                Fields::Named(fields_named) => {
                     for field in &fields_named.named {
                         let field_name = &field.ident;
                         let field_type = &field.ty;

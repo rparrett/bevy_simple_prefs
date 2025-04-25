@@ -12,19 +12,19 @@ use bevy::{
     app::{App, Plugin, Startup, Update},
     ecs::{
         component::Component,
-        schedule::IntoSystemConfigs,
-        system::{Commands, Query, Resource},
+        system::{Commands, Query},
         world::{CommandQueue, World},
     },
     log::warn,
+    prelude::{IntoScheduleConfigs, Resource},
     reflect::{
-        serde::{TypedReflectDeserializer, TypedReflectSerializer},
         GetTypeRegistration, Reflect, TypePath, TypeRegistry,
+        serde::{TypedReflectDeserializer, TypedReflectSerializer},
     },
-    tasks::{block_on, futures_lite::future, Task},
+    tasks::{Task, block_on, futures_lite::future},
 };
 pub use bevy_simple_prefs_derive::*;
-use ron::ser::{to_string_pretty, PrettyConfig};
+use ron::ser::{PrettyConfig, to_string_pretty};
 use serde::de::DeserializeSeed;
 
 /// A trait to be implemented by `bevy_simple_prefs_derive`.
