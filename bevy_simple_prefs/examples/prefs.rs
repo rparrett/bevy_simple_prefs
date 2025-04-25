@@ -1,6 +1,6 @@
 //! Example showing typical usage of `PrefsPlugin`.
 
-use bevy::{color::palettes::tailwind, ecs::system::EntityCommands, log::LogPlugin, prelude::*};
+use bevy::{color::palettes::tailwind, log::LogPlugin, prelude::*};
 use bevy_simple_prefs::{Prefs, PrefsPlugin};
 
 // All `Prefs` must also be `Reflect` and `Default`.
@@ -142,8 +142,8 @@ fn button_style(
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2d);
 
-    commands
-        .spawn(Node {
+    commands.spawn((
+        Node {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
             align_items: AlignItems::Center,
@@ -151,102 +151,94 @@ fn setup(mut commands: Commands) {
             flex_direction: FlexDirection::Column,
             row_gap: Val::Px(5.),
             ..default()
-        })
-        .with_children(|parent| {
-            build_row(parent).with_children(|parent| {
-                build_header(parent, "Volume".to_string());
-            });
-
-            build_row(parent).with_children(|parent| {
-                build_button(parent, "<".to_string(), VolumeDownButton);
-                build_label(parent, "".to_string(), VolumeLabel);
-                build_button(parent, ">".to_string(), VolumeUpButton);
-            });
-
-            build_row(parent).with_children(|parent| {
-                build_header(parent, "Difficulty".to_string());
-            });
-
-            build_row(parent).with_children(|parent| {
-                build_button(parent, "<".to_string(), DifficultyDownButton);
-                build_label(parent, "".to_string(), DifficultyLabel);
-                build_button(parent, ">".to_string(), DifficultyUpButton);
-            });
-        });
+        },
+        children![
+            (row(), children![header("Volume".to_string())]),
+            (
+                row(),
+                children![
+                    (button("<".to_string()), VolumeDownButton),
+                    label("".to_string(), VolumeLabel),
+                    (button(">".to_string()), VolumeUpButton),
+                ],
+            ),
+            (row(), children![header("Difficulty".to_string())]),
+            (
+                row(),
+                children![
+                    (button("<".to_string()), DifficultyDownButton),
+                    label("".to_string(), DifficultyLabel),
+                    (button(">".to_string()), DifficultyUpButton),
+                ],
+            )
+        ],
+    ));
 }
 
-fn build_header(parent: &mut ChildSpawnerCommands, text: String) {
-    parent.spawn((
+fn header(text: String) -> impl Bundle {
+    (
         Text::new(text),
         TextFont {
             font_size: TEXT_SIZE,
             ..default()
         },
         TextColor(TEXT_COLOR.into()),
-    ));
+    )
 }
 
-fn build_row<'a>(parent: &'a mut ChildSpawnerCommands) -> EntityCommands<'a> {
-    parent.spawn(Node {
+fn row() -> impl Bundle {
+    Node {
         align_items: AlignItems::Center,
         justify_content: JustifyContent::Center,
         column_gap: Val::Px(5.),
         ..default()
-    })
+    }
 }
 
-fn build_label<M: Component>(parent: &mut ChildSpawnerCommands, text: String, marker: M) {
-    parent
-        .spawn((
-            Node {
-                width: Val::Px(150.0),
-                height: Val::Px(50.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
+fn label<M: Component>(text: String, text_marker: M) -> impl Bundle {
+    (
+        Node {
+            width: Val::Px(150.0),
+            height: Val::Px(50.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        BorderRadius::all(Val::Px(5.)),
+        BackgroundColor(LABEL_BACKGROUND.into()),
+        children![(
+            Text::new(text),
+            TextFont {
+                font_size: TEXT_SIZE,
                 ..default()
             },
-            BorderRadius::all(Val::Px(5.)),
-            BackgroundColor(LABEL_BACKGROUND.into()),
-        ))
-        .with_children(|parent| {
-            parent.spawn((
-                Text::new(text),
-                TextFont {
-                    font_size: TEXT_SIZE,
-
-                    ..default()
-                },
-                TextColor(TEXT_COLOR.into()),
-                marker,
-            ));
-        });
+            TextColor(TEXT_COLOR.into()),
+            text_marker,
+        )],
+    )
 }
 
-fn build_button<M: Component>(parent: &mut ChildSpawnerCommands, text: String, marker: M) {
-    parent
-        .spawn((
-            Button,
-            Node {
-                width: Val::Px(50.0),
-                height: Val::Px(50.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
+fn button(text: String) -> impl Bundle {
+    (
+        Button,
+        Node {
+            width: Val::Px(50.0),
+            height: Val::Px(50.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        BorderRadius::all(Val::Px(5.)),
+        BackgroundColor(NORMAL_BUTTON.into()),
+        children![(
+            Text::new(text),
+            TextFont {
+                font_size: TEXT_SIZE,
                 ..default()
             },
-            BorderRadius::all(Val::Px(5.)),
-            BackgroundColor(NORMAL_BUTTON.into()),
-            marker,
-        ))
-        .with_children(|parent| {
-            parent.spawn((
-                Text::new(text),
-                TextFont {
-                    font_size: TEXT_SIZE,
-                    ..default()
-                },
-                TextColor(BUTTON_TEXT_COLOR.into()),
-            ));
-        });
+            TextColor(BUTTON_TEXT_COLOR.into()),
+        )],
+    )
 }
 
 impl Difficulty {
