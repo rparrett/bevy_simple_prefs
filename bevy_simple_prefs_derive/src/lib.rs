@@ -24,6 +24,9 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
             let mut field_inits = Vec::new();
             let mut field_inserts = Vec::new();
 
+            // This ensures field_checks will not generate an empty if expression.
+            field_checks.push(quote! { true });
+
             // Iterate over the fields of the struct
             match &data_struct.fields {
                 Fields::Named(fields_named) => {
