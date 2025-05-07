@@ -34,4 +34,4 @@ Please keep PRs small and scoped to a single feature or fix.
 
 ## Alternatives
 
-If you need more features, check out [`bevy-persistent`](https://crates.io/crates/bevy-persistent) or [`bevy-settings`](https://crates.io/crates/bevy-settings). There are also a few other options in the [persistence section](https://bevyengine.org/assets/#persistence) of Bevy Assets.
+If you need more features, check out [`bevy-settings`](https://crates.io/crates/bevy-settings). There are also a few other options in the [persistence section](https://bevyengine.org/assets/#persistence) of Bevy Assets.
