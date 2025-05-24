@@ -83,7 +83,7 @@ impl<T: Reflect + TypePath> Default for PrefsPlugin<T> {
             // For Wasm, we want to provide a unique name for a project by default
             // to avoid collisions when doing local development or deploying multiple
             // apps to the same web server.
-            local_storage_key: format!("{}::{}.ron", package_name, T::short_type_path()),
+            local_storage_key: format!("{package_name}::{}.ron", T::short_type_path()),
             _phantom: Default::default(),
         }
     }
