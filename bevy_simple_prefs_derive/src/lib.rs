@@ -103,12 +103,13 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                             }).detach();
                     }
 
-                    #[cfg(not(target_arch = "wasm32"))]
                     fn load(world: &mut World) {
                         ::bevy::log::debug!("bevy_simple_prefs initiating load task");
 
                         let settings = world.resource::<::bevy_simple_prefs::PrefsSettings<#name>>();
+                        #[cfg(not(target_arch = "wasm32"))]
                         let path = settings.path.clone();
+                        #[cfg(target_arch = "wasm32")]
                         let local_storage_key = settings.local_storage_key.clone();
 
                         let entity = world.spawn_empty().id();
@@ -117,7 +118,12 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                             ::bevy::log::debug!("bevy_simple_prefs loading");
 
                             let val = (|| {
-                                let Some(serialized_value) = ::bevy_simple_prefs::load_str(&path) else {
+                                #[cfg(not(target_arch = "wasm32"))]
+                                let maybe_serialized_value = ::bevy_simple_prefs::load_str(&path);
+                                #[cfg(target_arch = "wasm32")]
+                                let Some(serialized_value) = ::bevy_simple_prefs::load_str(&local_storage_key);
+
+                                let Some(serialized_value) = maybe_serialized_value else {
                                     return #name::default();
                                 };
 
@@ -141,31 +147,6 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                         });
 
                         world.entity_mut(entity).insert(::bevy_simple_prefs::LoadPrefsTask(task));
-                    }
-
-                    // There's no task pool and no multi-threading on wasm, so just load everything,
-                    // toss it into the world, and update `PrefsStatus`.
-                    #[cfg(target_arch = "wasm32")]
-                    fn load(world: &mut World) {
-                        let settings = world.resource::<::bevy_simple_prefs::PrefsSettings<#name>>();
-
-                        let val = (|| {
-                            let Some(serialized_value) = ::bevy_simple_prefs::load_str(&settings.local_storage_key) else {
-                                return #name::default();
-                            };
-
-                            match ::bevy_simple_prefs::deserialize(&serialized_value) {
-                                Ok(v) => v,
-                                Err(e) => {
-                                    ::bevy::log::error!("bevy_simple_prefs failed to deserialize prefs: {}", e);
-                                    return #name::default();
-                                }
-                            }
-                        })();
-
-                        #(#field_inserts;)*;
-
-                        world.resource_mut::<::bevy_simple_prefs::PrefsStatus<#name>>().loaded = true;
                     }
 
                     fn init(app: &mut App) {
