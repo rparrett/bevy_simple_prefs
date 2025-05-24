@@ -17,7 +17,7 @@ jobs:
         run: cargo check --examples
       - name: check (wasm)
         run: cargo check --target=wasm32-unknown-unknown
-      - name: examples
+      - name: examples (wasm)
         run: cargo check --examples --target=wasm32-unknown-unknown
       - name: fmt
         run: cargo fmt --all -- --check
