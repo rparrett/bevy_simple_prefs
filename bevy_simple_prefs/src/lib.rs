@@ -55,7 +55,7 @@ pub trait Prefs {
 /// App::new().add_plugins(PrefsPlugin::<ExamplePrefs>::default());
 /// ```
 pub struct PrefsPlugin<T: Reflect + TypePath> {
-    /// Path to the file where the preferences file will be stored.
+    /// Path to the file where the preferences will be stored.
     ///
     /// This value is not used in Wasm builds.
     ///
