@@ -68,7 +68,7 @@ pub struct PrefsPlugin<T: Reflect + TypePath> {
     /// apps on the same web server. On itch.io, for example, many other games
     /// will be using the same storage area.
     ///
-    /// Defaults to `(crate name of T)::(name of T).ron`.
+    /// Defaults to `(crate name of T)::(type name of T).ron`.
     pub local_storage_key: String,
     /// PhantomData
     pub _phantom: PhantomData<T>,
