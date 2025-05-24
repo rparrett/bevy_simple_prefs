@@ -193,12 +193,9 @@ pub fn save_str(local_storage_key: &str, data: &str) {
         }
     };
 
-    let storage = match window.local_storage() {
-        Ok(Some(s)) => s,
-        _ => {
-            warn!("Failed to store save file: no storage.");
-            return;
-        }
+    let Ok(Some(storage)) = window.local_storage() else {
+        warn!("Failed to store save file: no storage.");
+        return;
     };
 
     if let Err(e) = storage.set_item(local_storage_key, data) {
