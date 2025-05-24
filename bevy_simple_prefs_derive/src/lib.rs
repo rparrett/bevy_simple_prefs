@@ -121,7 +121,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                                 #[cfg(not(target_arch = "wasm32"))]
                                 let maybe_serialized_value = ::bevy_simple_prefs::load_str(&path);
                                 #[cfg(target_arch = "wasm32")]
-                                let Some(serialized_value) = ::bevy_simple_prefs::load_str(&local_storage_key);
+                                let maybe_serialized_value = ::bevy_simple_prefs::load_str(&local_storage_key);
 
                                 let Some(serialized_value) = maybe_serialized_value else {
                                     return #name::default();
