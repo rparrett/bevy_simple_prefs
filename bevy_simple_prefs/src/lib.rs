@@ -185,12 +185,9 @@ pub fn save_str(path: &std::path::Path, data: &str) {
 /// Persists preferences.
 #[cfg(target_arch = "wasm32")]
 pub fn save_str(local_storage_key: &str, data: &str) {
-    let window = match web_sys::window() {
-        Some(w) => w,
-        None => {
-            warn!("Failed to store save file: no window.");
-            return;
-        }
+    let Some(window) = web_sys::window() else {
+        warn!("Failed to store save file: no window.");
+        return;
     };
 
     let Ok(Some(storage)) = window.local_storage() else {
