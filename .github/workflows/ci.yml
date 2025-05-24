@@ -13,6 +13,10 @@ jobs:
         run: cargo check
       - name: examples
         run: cargo check --examples
+      - name: check (wasm)
+        run: cargo check --target=wasm32-unknown-unknown
+      - name: examples
+        run: cargo check --examples --target=wasm32-unknown-unknown
       - name: fmt
         run: cargo fmt --all -- --check
       - name: clippy

@@ -2,11 +2,7 @@
 //!
 //! A small Bevy plugin for persisting multiple `Resource`s to a single file.
 
-use std::{
-    any::TypeId,
-    marker::PhantomData,
-    path::{Path, PathBuf},
-};
+use std::{any::TypeId, marker::PhantomData, path::PathBuf};
 
 use bevy::{
     app::{App, Plugin, Startup, Update},
@@ -59,45 +55,55 @@ pub trait Prefs {
 /// App::new().add_plugins(PrefsPlugin::<ExamplePrefs>::default());
 /// ```
 pub struct PrefsPlugin<T: Reflect + TypePath> {
-    /// Filename (or LocalStorage key) for the preferences file.
-    pub filename: String,
-    /// Path to the directory where the preferences file will be stored.
+    /// Path to the file where the preferences file will be stored.
     ///
-    /// This value is not used in WASM builds.
+    /// This value is not used in Wasm builds.
+    ///
+    /// Defaults to `(crate name of T)_prefs.ron` in the current working directory.
     pub path: PathBuf,
+    /// String to use for the key when storing preferences in localStorage on
+    /// Wasm builds.
+    ///
+    /// This value should be unique to your app to avoid collisions with other
+    /// apps on the same web server. On itch.io, for example, many other games
+    /// will be using the same storage area.
+    ///
+    /// Defaults to `(crate name of T)::(name of T).ron`.
+    pub local_storage_key: String,
     /// PhantomData
     pub _phantom: PhantomData<T>,
 }
 impl<T: Reflect + TypePath> Default for PrefsPlugin<T> {
     fn default() -> Self {
-        // For wasm, we want to provide a unique name for a project by default
-        // to avoid collisions when doing local development or deploying multiple
-        // apps to the same web server (for example, itch.io).
         let package_name = T::crate_name().unwrap_or("bevy_simple");
+        let file_name = format!("{}_prefs.ron", package_name);
 
         Self {
-            filename: format!("{}_prefs.ron", package_name),
-            path: Default::default(),
+            path: file_name.into(),
+            // For Wasm, we want to provide a unique name for a project by default
+            // to avoid collisions when doing local development or deploying multiple
+            // apps to the same web server.
+            local_storage_key: format!("{}::{}.ron", package_name, T::short_type_path()),
             _phantom: Default::default(),
         }
     }
 }
 
-/// Settings for `PrefsPlugin`.
+/// Settings for [`PrefsPlugin`].
 #[derive(Resource)]
 pub struct PrefsSettings<T> {
-    /// Filename (or LocalStorage key) for the preferences file.
-    pub filename: String,
-    /// Path to the directory where the preferences file will be stored.
+    /// See [`PrefsPlugin::local_storage_key`].
+    pub local_storage_key: String,
+    /// See [`PrefsPlugin::path`].
     pub path: PathBuf,
     /// PhantomData
     pub _phantom: PhantomData<T>,
 }
 
-/// Current status of the `PrefsPlugin`.
+/// Current status of the [`PrefsPlugin`].
 #[derive(Resource)]
 pub struct PrefsStatus<T> {
-    /// `true` if the preferences have been
+    /// `true` if the preferences have been loaded
     pub loaded: bool,
     _phantom: PhantomData<T>,
 }
@@ -118,8 +124,8 @@ pub struct LoadPrefsTask(pub Task<CommandQueue>);
 impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource::<PrefsSettings<T>>(PrefsSettings {
-            filename: self.filename.clone(),
             path: self.path.clone(),
+            local_storage_key: self.local_storage_key.clone(),
             _phantom: Default::default(),
         });
         app.init_resource::<PrefsStatus<T>>();
@@ -142,67 +148,61 @@ fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<&mut LoadPref
 }
 
 /// Loads preferences from persisted data.
-pub fn load_str(dir: &Path, filename: &str) -> Option<String> {
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        let path = dir.join(filename);
+#[cfg(not(target_arch = "wasm32"))]
+pub fn load_str(path: &std::path::Path) -> Option<String> {
+    std::fs::read_to_string(path).ok()
+}
 
-        std::fs::read_to_string(path).ok()
-    }
+/// Loads preferences from persisted data.
+#[cfg(target_arch = "wasm32")]
+pub fn load_str(local_storage_key: &str) -> Option<String> {
+    let Some(window) = web_sys::window() else {
+        warn!("Failed to load save file: no window.");
+        return None;
+    };
 
-    #[cfg(target_arch = "wasm32")]
-    {
-        let Some(window) = web_sys::window() else {
-            warn!("Failed to load save file: no window.");
-            return None;
-        };
+    let Ok(Some(storage)) = window.local_storage() else {
+        warn!("Failed to load save file: no storage.");
+        return None;
+    };
 
-        let Ok(Some(storage)) = window.local_storage() else {
-            warn!("Failed to load save file: no storage.");
-            return None;
-        };
+    let Ok(maybe_item) = storage.get_item(local_storage_key) else {
+        warn!("Failed to load save file: failed to get item.");
+        return None;
+    };
 
-        let Ok(maybe_item) = storage.get_item(filename) else {
-            warn!("Failed to load save file: failed to get item.");
-            return None;
-        };
+    maybe_item
+}
 
-        maybe_item
+/// Persists preferences.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn save_str(path: &std::path::Path, data: &str) {
+    if let Err(e) = std::fs::write(path, data) {
+        warn!("Failed to store save file: {:?}", e);
     }
 }
 
 /// Persists preferences.
-pub fn save_str(dir: &Path, filename: &str, data: &str) {
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        let path = dir.join(filename);
-
-        if let Err(e) = std::fs::write(path, data) {
-            warn!("Failed to store save file: {:?}", e);
+#[cfg(target_arch = "wasm32")]
+pub fn save_str(local_storage_key: &str, data: &str) {
+    let window = match web_sys::window() {
+        Some(w) => w,
+        None => {
+            warn!("Failed to store save file: no window.");
+            return;
         }
-    }
+    };
 
-    #[cfg(target_arch = "wasm32")]
-    {
-        let window = match web_sys::window() {
-            Some(w) => w,
-            None => {
-                warn!("Failed to store save file: no window.");
-                return;
-            }
-        };
-
-        let storage = match window.local_storage() {
-            Ok(Some(s)) => s,
-            _ => {
-                warn!("Failed to store save file: no storage.");
-                return;
-            }
-        };
-
-        if let Err(e) = storage.set_item(filename, data) {
-            warn!("Failed to store save file: {:?}", e);
+    let storage = match window.local_storage() {
+        Ok(Some(s)) => s,
+        _ => {
+            warn!("Failed to store save file: no storage.");
+            return;
         }
+    };
+
+    if let Err(e) = storage.set_item(local_storage_key, data) {
+        warn!("Failed to store save file: {:?}", e);
     }
 }
 
