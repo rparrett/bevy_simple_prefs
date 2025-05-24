@@ -42,10 +42,8 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn print(mut launches: ResMut<Launches>) {
+fn print(launches: Res<Launches>) {
     if launches.is_changed() && !launches.is_added() {
         info!("Launches: {}", launches.0);
-
-        launches.0 += 1;
     }
 }
