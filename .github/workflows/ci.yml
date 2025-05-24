@@ -7,12 +7,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
       - name: Install alsa and udev
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
       - name: check
         run: cargo check
       - name: examples
         run: cargo check --examples
+      - name: check (wasm)
+        run: cargo check --target=wasm32-unknown-unknown
+      - name: examples (wasm)
+        run: cargo check --examples --target=wasm32-unknown-unknown
       - name: fmt
         run: cargo fmt --all -- --check
       - name: clippy
