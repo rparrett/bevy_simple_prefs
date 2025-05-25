@@ -5,7 +5,7 @@
 use std::{any::TypeId, marker::PhantomData, path::PathBuf};
 
 use bevy::{
-    app::{App, Plugin, Startup, Update},
+    app::{App, Plugin, PostUpdate, Startup},
     ecs::{
         component::Component,
         system::{Commands, Query},
@@ -133,7 +133,7 @@ impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
         <T>::init(app);
 
         // `save` checks load status and needs to run in the same frame after `handle_tasks`.
-        app.add_systems(Update, (handle_tasks, <T>::save).chain());
+        app.add_systems(PostUpdate, (handle_tasks, <T>::save).chain());
         app.add_systems(Startup, <T>::load);
     }
 }
