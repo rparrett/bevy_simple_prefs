@@ -18,7 +18,7 @@ fn main() -> anyhow::Result<()> {
     App::new()
         .add_plugins((
             DefaultPlugins.set(LogPlugin {
-                filter: "dirs=debug,bevy_simple_prefs=debug".into(),
+                filter: "home_dir=debug,bevy_simple_prefs=debug".into(),
                 ..default()
             }),
             PrefsPlugin::<ExamplePrefs> {

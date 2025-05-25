@@ -75,7 +75,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                             return;
                         }
 
-                        ::bevy::log::debug!("bevy_simple_prefs initiating save");
+                        ::bevy::log::debug!("Spawning save task");
 
                         let to_save = #name {
                             #(#field_assignments,)*
@@ -89,22 +89,28 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
 
                         ::bevy::tasks::IoTaskPool::get()
                             .spawn(async move {
-                                ::bevy::log::debug!("bevy_simple_prefs saving");
-
                                 let Ok(serialized_value) = ::bevy_simple_prefs::serialize(&to_save) else {
-                                    bevy::log::error!("Failed to serialize prefs.");
+                                    ::bevy::log::error!("Failed to serialize prefs.");
                                     return;
                                 };
 
                                 #[cfg(not(target_arch = "wasm32"))]
-                                ::bevy_simple_prefs::save_str(&path, &serialized_value);
+                                {
+                                    ::bevy::log::debug!("Saving {}", path.to_string_lossy());
+                                    ::bevy_simple_prefs::save_str(&path, &serialized_value);
+                                }
+
                                 #[cfg(target_arch = "wasm32")]
-                                ::bevy_simple_prefs::save_str(&local_storage_key, &serialized_value);
+                                {
+                                    ::bevy::log::debug!("Saving {}", local_storage_key);
+                                    ::bevy_simple_prefs::save_str(&local_storage_key, &serialized_value);
+                                }
+
                             }).detach();
                     }
 
                     fn load(world: &mut World) {
-                        ::bevy::log::debug!("bevy_simple_prefs initiating load task");
+                        ::bevy::log::debug!("Spawning load task");
 
                         let settings = world.resource::<::bevy_simple_prefs::PrefsSettings<#name>>();
                         #[cfg(not(target_arch = "wasm32"))]
@@ -115,13 +121,17 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                         let entity = world.spawn_empty().id();
 
                         let task = ::bevy::tasks::IoTaskPool::get().spawn(async move {
-                            ::bevy::log::debug!("bevy_simple_prefs loading");
-
                             let val = (|| {
                                 #[cfg(not(target_arch = "wasm32"))]
-                                let maybe_serialized_value = ::bevy_simple_prefs::load_str(&path);
+                                let maybe_serialized_value = {
+                                    ::bevy::log::debug!("Loading {}", path.to_string_lossy());
+                                    ::bevy_simple_prefs::load_str(&path)
+                                };
                                 #[cfg(target_arch = "wasm32")]
-                                let maybe_serialized_value = ::bevy_simple_prefs::load_str(&local_storage_key);
+                                let maybe_serialized_value = {
+                                    ::bevy::log::debug!("Loading {}", local_storage_key);
+                                    ::bevy_simple_prefs::load_str(&local_storage_key)
+                                };
 
                                 let Some(serialized_value) = maybe_serialized_value else {
                                     return #name::default();

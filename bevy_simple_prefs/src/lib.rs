@@ -141,7 +141,7 @@ impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
 fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<&mut LoadPrefsTask>) {
     for mut task in &mut transform_tasks {
         if let Some(mut commands_queue) = block_on(future::poll_once(&mut task.0)) {
-            bevy::log::debug!("adding pref resource update commands");
+            bevy::log::debug!("Adding Resource update commands to queue");
             commands.append(&mut commands_queue);
         }
     }
