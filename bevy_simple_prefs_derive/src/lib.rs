@@ -129,7 +129,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                                 };
                                 #[cfg(target_arch = "wasm32")]
                                 let maybe_serialized_value = {
-                                    ::bevy::log::debug!("local_storage_key {}", path);
+                                    ::bevy::log::debug!("Loading {}", local_storage_key);
                                     ::bevy_simple_prefs::load_str(&local_storage_key)
                                 };
 
