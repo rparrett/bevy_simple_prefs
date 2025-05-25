@@ -1,7 +1,7 @@
 //! Example demonstrating how to store the preferences in the user's home directory.
 
 use bevy::{log::LogPlugin, prelude::*};
-use bevy_simple_prefs::{Prefs, PrefsPlugin};
+use bevy_simple_prefs::{Prefs, PrefsPlugin, PrefsStatus};
 
 #[cfg(not(target_arch = "wasm32"))]
 use anyhow::Context;
@@ -36,14 +36,19 @@ fn main() -> anyhow::Result<()> {
                 ..default()
             },
         ))
-        .add_systems(Update, print)
+        .add_systems(
+            Update,
+            print.run_if(condition_changed_to(
+                true,
+                |status: Res<PrefsStatus<ExamplePrefs>>| status.loaded,
+            )),
+        )
         .run();
 
     Ok(())
 }
 
-fn print(launches: Res<Launches>) {
-    if launches.is_changed() && !launches.is_added() {
-        info!("Launches: {}", launches.0);
-    }
+fn print(mut launches: ResMut<Launches>) {
+    info!("Launches: {}", launches.0);
+    launches.0 += 1;
 }
