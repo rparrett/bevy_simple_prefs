@@ -5,9 +5,10 @@
 use std::{any::TypeId, marker::PhantomData, path::PathBuf};
 
 use bevy::{
-    app::{App, Plugin, PostUpdate, PreUpdate, Startup},
+    app::{App, Plugin, PostUpdate, Startup},
     ecs::{
         component::Component,
+        schedule::{IntoScheduleConfigs, SystemSet},
         system::{Commands, Query},
         world::{CommandQueue, World},
     },
@@ -121,6 +122,10 @@ impl<T> Default for PrefsStatus<T> {
 #[derive(Component)]
 pub struct LoadPrefsTask(pub Task<CommandQueue>);
 
+/// A system set containing the system that initializes a save task.
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PrefsSaveSystems;
+
 #[derive(Resource, Default)]
 struct HandleTasksSystemAdded;
 
@@ -140,12 +145,12 @@ impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
             .get_resource::<HandleTasksSystemAdded>()
             .is_none()
         {
-            app.add_systems(PreUpdate, handle_tasks);
+            app.add_systems(PostUpdate, handle_tasks.before(PrefsSaveSystems));
             app.init_resource::<HandleTasksSystemAdded>();
         }
 
         // `save` checks load status and needs to run in the same frame after `handle_tasks`.
-        app.add_systems(PostUpdate, <T>::save);
+        app.add_systems(PostUpdate, <T>::save.in_set(PrefsSaveSystems));
         app.add_systems(Startup, <T>::load);
     }
 }
