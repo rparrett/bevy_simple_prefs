@@ -5,7 +5,7 @@
 use std::{any::TypeId, marker::PhantomData, path::PathBuf};
 
 use bevy::{
-    app::{App, Plugin, PostUpdate, PreUpdate, Startup},
+    app::{App, Plugin, PostUpdate, Startup},
     ecs::{
         component::Component,
         schedule::{IntoScheduleConfigs, SystemSet},
