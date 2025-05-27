@@ -5,14 +5,14 @@
 use std::{any::TypeId, marker::PhantomData, path::PathBuf};
 
 use bevy::{
-    app::{App, Plugin, PostUpdate, Startup},
+    app::{App, Plugin, PostUpdate, PreUpdate, Startup},
     ecs::{
         component::Component,
         system::{Commands, Query},
         world::{CommandQueue, World},
     },
     log::warn,
-    prelude::{IntoScheduleConfigs, Resource},
+    prelude::Resource,
     reflect::{
         GetTypeRegistration, Reflect, TypePath, TypeRegistry,
         serde::{TypedReflectDeserializer, TypedReflectSerializer},
@@ -121,6 +121,9 @@ impl<T> Default for PrefsStatus<T> {
 #[derive(Component)]
 pub struct LoadPrefsTask(pub Task<CommandQueue>);
 
+#[derive(Resource, Default)]
+struct HandleTasksSystemAdded;
+
 impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource::<PrefsSettings<T>>(PrefsSettings {
@@ -132,8 +135,17 @@ impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
 
         <T>::init(app);
 
+        if app
+            .world()
+            .get_resource::<HandleTasksSystemAdded>()
+            .is_none()
+        {
+            app.add_systems(PreUpdate, handle_tasks);
+            app.init_resource::<HandleTasksSystemAdded>();
+        }
+
         // `save` checks load status and needs to run in the same frame after `handle_tasks`.
-        app.add_systems(PostUpdate, (handle_tasks, <T>::save).chain());
+        app.add_systems(PostUpdate, <T>::save);
         app.add_systems(Startup, <T>::load);
     }
 }
