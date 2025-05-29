@@ -3,9 +3,6 @@
 use bevy::{log::LogPlugin, prelude::*};
 use bevy_simple_prefs::{Prefs, PrefsPlugin, PrefsStatus};
 
-#[cfg(not(target_arch = "wasm32"))]
-use anyhow::Context;
-
 #[derive(Resource, Reflect, Default, Clone)]
 struct Launches(u32);
 
@@ -14,7 +11,7 @@ struct ExamplePrefs {
     launches: Launches,
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result {
     App::new()
         .add_plugins((
             DefaultPlugins.set(LogPlugin {
@@ -28,9 +25,9 @@ fn main() -> anyhow::Result<()> {
                 #[cfg(not(target_arch = "wasm32"))]
                 path: {
                     let dir = dirs::config_local_dir()
-                        .context("Determining local config directory")?
+                        .ok_or("Failed to determine local config directory")?
                         .join("home_dir");
-                    std::fs::create_dir_all(&dir).context("Creating prefs directory")?;
+                    std::fs::create_dir_all(&dir)?;
                     dir.join("prefs.ron")
                 },
                 ..default()

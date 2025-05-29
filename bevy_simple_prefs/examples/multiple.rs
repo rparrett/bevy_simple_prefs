@@ -19,7 +19,7 @@ struct ExamplePrefs {
     enabled: Enabled,
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins.set(LogPlugin {
@@ -47,8 +47,6 @@ fn main() -> anyhow::Result<()> {
             toggle_enabled.run_if(input_just_pressed(KeyCode::Space)),
         )
         .run();
-
-    Ok(())
 }
 
 fn print(mut launches: ResMut<Launches>, enabled: Res<Enabled>) {
