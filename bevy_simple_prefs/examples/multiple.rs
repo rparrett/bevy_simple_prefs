@@ -1,4 +1,4 @@
-//! Example demonstrating how to store the preferences in the user's home directory.
+//! Example demonstrating how to use multiple separate prefs files
 
 use bevy::{input::common_conditions::input_just_pressed, log::LogPlugin, prelude::*};
 use bevy_simple_prefs::{Prefs, PrefsPlugin, PrefsStatus};
