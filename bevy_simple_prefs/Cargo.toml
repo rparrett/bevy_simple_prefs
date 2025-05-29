@@ -23,9 +23,6 @@ version = "0.16.0"
 default-features = false
 features = ["bevy_log"]
 
-[dev-dependencies]
-anyhow = "1"
-
 [dev-dependencies.bevy]
 version = "0.16.0"
 default-features = true
