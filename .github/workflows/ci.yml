@@ -16,9 +16,9 @@ jobs:
       - name: examples
         run: cargo check --examples
       - name: check (wasm)
-        run: cargo check --target=wasm32-unknown-unknown
+        run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' cargo check --target=wasm32-unknown-unknown
       - name: examples (wasm)
-        run: cargo check --examples --target=wasm32-unknown-unknown
+        run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' cargo check --examples --target=wasm32-unknown-unknown
       - name: fmt
         run: cargo fmt --all -- --check
       - name: clippy
