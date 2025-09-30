@@ -22,6 +22,7 @@ See [examples/prefs.rs](./bevy_simple_prefs/examples/prefs.rs)
 
 | `bevy_simple_prefs` | `bevy` |
 | :--                 | :--    |
+| `0.7`               | `0.17` |
 | `0.5`-`0.6`         | `0.16` |
 | `0.4`               | `0.15` |
 | `0.1`-`0.3`         | `0.14` |
