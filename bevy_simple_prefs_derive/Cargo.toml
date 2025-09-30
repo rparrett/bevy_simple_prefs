@@ -16,11 +16,6 @@ exclude = [".github"]
 quote = "1.0"
 syn = "2.0"
 
-[dependencies.bevy]
-version = "0.16.0"
-features = ["bevy_log"]
-default-features = false
-
 [lib]
 proc-macro = true
 
