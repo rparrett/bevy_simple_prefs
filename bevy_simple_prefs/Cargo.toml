@@ -1,6 +1,6 @@
 [package]
 name = "bevy_simple_prefs"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "A small Bevy plugin for persisting multiple Resources to a single file"
@@ -13,7 +13,7 @@ readme = "README.md"
 exclude = [".github"]
 
 [dependencies]
-bevy_simple_prefs_derive = { path = "../bevy_simple_prefs_derive", version = "0.7.0" }
+bevy_simple_prefs_derive = { path = "../bevy_simple_prefs_derive", version = "0.7.1" }
 web-sys = { version = "0.3", features = ["Window", "Storage"] }
 serde = "1.0"
 ron = "0.8"
