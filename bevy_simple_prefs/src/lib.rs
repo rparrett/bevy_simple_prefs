@@ -18,7 +18,7 @@ use bevy::{
         GetTypeRegistration, Reflect, TypePath, TypeRegistry,
         serde::{TypedReflectDeserializer, TypedReflectSerializer},
     },
-    tasks::{Task, block_on, futures_lite::future},
+    tasks::{Task, futures::check_ready},
 };
 pub use bevy_simple_prefs_derive::*;
 use ron::ser::{PrettyConfig, to_string_pretty};
@@ -157,7 +157,7 @@ impl<T: Prefs + Reflect + TypePath> Plugin for PrefsPlugin<T> {
 
 fn handle_tasks(mut commands: Commands, mut transform_tasks: Query<&mut LoadPrefsTask>) {
     for mut task in &mut transform_tasks {
-        if let Some(mut commands_queue) = block_on(future::poll_once(&mut task.0)) {
+        if let Some(mut commands_queue) = check_ready(&mut task.0) {
             bevy::log::debug!("Adding Resource update commands to queue");
             commands.append(&mut commands_queue);
         }
