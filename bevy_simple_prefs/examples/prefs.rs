@@ -202,9 +202,9 @@ fn label<M: Component>(text: String, text_marker: M) -> impl Bundle {
             height: Val::Px(50.0),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
+            border_radius: BorderRadius::all(Val::Px(5.)),
             ..default()
         },
-        BorderRadius::all(Val::Px(5.)),
         BackgroundColor(LABEL_BACKGROUND.into()),
         children![(
             Text::new(text),
@@ -226,9 +226,9 @@ fn button(text: String) -> impl Bundle {
             height: Val::Px(50.0),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
+            border_radius: BorderRadius::all(Val::Px(5.)),
             ..default()
         },
-        BorderRadius::all(Val::Px(5.)),
         BackgroundColor(NORMAL_BUTTON.into()),
         children![(
             Text::new(text),
