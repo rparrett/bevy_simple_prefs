@@ -28,6 +28,7 @@ I am not planning on any more non-bugfix releases and will archive the project w
 
 | `bevy_simple_prefs` | `bevy` |
 | :--                 | :--    |
+| `0.9`               | `0.19` |
 | `0.8`               | `0.18` |
 | `0.7`               | `0.17` |
 | `0.5`-`0.6`         | `0.16` |
