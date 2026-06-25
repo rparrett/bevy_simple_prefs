@@ -44,7 +44,7 @@ pub fn prefs_derive(input: TokenStream) -> TokenStream {
                             #field_name: #field_type
                         });
                         field_assignments.push(quote! {
-                            #field_name: #field_name.clone()
+                            #field_name: (*#field_name).clone()
                         });
                         field_inits.push(quote! {
                             app.init_resource::<#field_type>();

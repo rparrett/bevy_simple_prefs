@@ -179,7 +179,7 @@ fn header(text: String) -> impl Bundle {
     (
         Text::new(text),
         TextFont {
-            font_size: TEXT_SIZE,
+            font_size: FontSize::Px(TEXT_SIZE),
             ..default()
         },
         TextColor(TEXT_COLOR.into()),
@@ -209,7 +209,7 @@ fn label<M: Component>(text: String, text_marker: M) -> impl Bundle {
         children![(
             Text::new(text),
             TextFont {
-                font_size: TEXT_SIZE,
+                font_size: FontSize::Px(TEXT_SIZE),
                 ..default()
             },
             TextColor(TEXT_COLOR.into()),
@@ -233,7 +233,7 @@ fn button(text: String) -> impl Bundle {
         children![(
             Text::new(text),
             TextFont {
-                font_size: TEXT_SIZE,
+                font_size: FontSize::Px(TEXT_SIZE),
                 ..default()
             },
             TextColor(BUTTON_TEXT_COLOR.into()),
