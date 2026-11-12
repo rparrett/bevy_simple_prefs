@@ -1,6 +1,9 @@
 //! Example showing typical usage of `PrefsPlugin`.
 
-use bevy::{color::palettes::tailwind, log::LogPlugin, prelude::*};
+use bevy::{
+    color::palettes::tailwind, log::LogPlugin, picking::hover::Hovered, prelude::*, ui::Pressed,
+    ui_widgets::Button,
+};
 use bevy_simple_prefs::{Prefs, PrefsPlugin};
 
 // All `Prefs` must also be `Reflect` and `Default`.
@@ -70,19 +73,19 @@ struct DifficultyDownButton;
 struct DifficultyLabel;
 
 fn volume_buttons(
-    up_query: Query<&Interaction, (Changed<Interaction>, With<VolumeUpButton>)>,
-    down_query: Query<&Interaction, (Changed<Interaction>, With<VolumeDownButton>)>,
+    up_query: Query<(), (Added<Pressed>, With<VolumeUpButton>)>,
+    down_query: Query<(), (Added<Pressed>, With<VolumeDownButton>)>,
     mut volume: ResMut<Volume>,
 ) {
     // Prefs are persisted when the individual resources are changed.
     // Be careful when mutably dereferencing, as this can trigger unnecessary IO.
     let current = volume.bypass_change_detection().0;
 
-    for _ in up_query.iter().filter(|i| **i == Interaction::Pressed) {
+    for _ in &up_query {
         let new = (current + 10).min(100);
         volume.set_if_neq(Volume(new));
     }
-    for _ in down_query.iter().filter(|i| **i == Interaction::Pressed) {
+    for _ in &down_query {
         let new = current.saturating_sub(10);
         volume.set_if_neq(Volume(new));
     }
@@ -95,15 +98,15 @@ fn volume_label(volume: Res<Volume>, mut text_query: Query<&mut Text, With<Volum
 }
 
 fn difficulty_buttons(
-    up_query: Query<&Interaction, (Changed<Interaction>, With<DifficultyUpButton>)>,
-    down_query: Query<&Interaction, (Changed<Interaction>, With<DifficultyDownButton>)>,
+    up_query: Query<(), (Added<Pressed>, With<DifficultyUpButton>)>,
+    down_query: Query<(), (Added<Pressed>, With<DifficultyDownButton>)>,
     mut difficulty: ResMut<Difficulty>,
 ) {
-    for _ in up_query.iter().filter(|i| **i == Interaction::Pressed) {
+    for _ in &up_query {
         let next = difficulty.bypass_change_detection().next();
         difficulty.set_if_neq(next);
     }
-    for _ in down_query.iter().filter(|i| **i == Interaction::Pressed) {
+    for _ in &down_query {
         let prev = difficulty.bypass_change_detection().prev();
         difficulty.set_if_neq(prev);
     }
@@ -119,23 +122,17 @@ fn difficulty_label(
 }
 
 fn button_style(
-    mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor),
-        (Changed<Interaction>, With<Button>),
-    >,
+    mut interaction_query: Query<(&Hovered, Has<Pressed>, &mut BackgroundColor), With<Button>>,
 ) {
-    for (interaction, mut color) in &mut interaction_query {
-        match *interaction {
-            Interaction::Pressed => {
-                *color = PRESSED_BUTTON.into();
-            }
-            Interaction::Hovered => {
-                *color = HOVERED_BUTTON.into();
-            }
-            Interaction::None => {
-                *color = NORMAL_BUTTON.into();
-            }
-        }
+    for (hovered, pressed, mut color) in &mut interaction_query {
+        let next = if pressed {
+            PRESSED_BUTTON
+        } else if hovered.0 {
+            HOVERED_BUTTON
+        } else {
+            NORMAL_BUTTON
+        };
+        color.set_if_neq(next.into());
     }
 }
 
@@ -221,6 +218,7 @@ fn label<M: Component>(text: String, text_marker: M) -> impl Bundle {
 fn button(text: String) -> impl Bundle {
     (
         Button,
+        Hovered::default(),
         Node {
             width: Val::Px(50.0),
             height: Val::Px(50.0),

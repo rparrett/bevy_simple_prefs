@@ -22,12 +22,13 @@ See [examples/prefs.rs](./bevy_simple_prefs/examples/prefs.rs)
 
 Bevy 0.19 now has a built-in [settings system](https://bevy.org/news/bevy-0-19/#app-settings). It is better and has more features overall, but generally works the same way that this crate does.
 
-I am not planning on any more non-bugfix releases and will archive the project when Bevy 0.20 is released.
+I am not planning on any more non-bugfix releases and will archive the project when Bevy 0.21 is released.
 
 ## Compatibility
 
 | `bevy_simple_prefs` | `bevy` |
 | :--                 | :--    |
+| `0.10`              | `0.20` |
 | `0.9`               | `0.19` |
 | `0.8`               | `0.18` |
 | `0.7`               | `0.17` |
